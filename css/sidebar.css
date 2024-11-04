@@ -1,0 +1,88 @@
+.sidebar {
+    width: 250px;
+    height: 100vh;
+    background-color: #2c3e50;
+    position: fixed;
+    top: 0;
+    left: 0;
+    padding-top: 20px;
+}
+
+.sidebar .logo-details {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.sidebar .logo-details span {
+    font-size: 22px;
+    color: white;
+    margin-right: 10px;
+}
+
+.sidebar .logo-details a i {
+    font-size: 22px;
+    color: white;
+    margin-right: 10px;
+}
+
+.sidebar .logo_name {
+    color: white;
+    font-size: 24px;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    padding: 15px;
+    text-align: left;
+}
+
+.sidebar ul li a {
+    text-decoration: none;
+    color: #ecf0f1;
+    display: block;
+    font-size: 18px;
+}
+
+.sidebar ul li a:hover {
+    background-color: #34495e;
+    /* padding-left: 10px; */
+    transition: all 0.3s;
+}
+
+.sidebar ul li a i {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+/* Dropdown specific styles */
+.sidebar ul ul {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease-out;
+}
+.drops{
+    font-size: 10px;
+}
+.sidebar li i {
+    min-width: 20px;
+    text-align: center;
+    line-height: 30px;
+    color: white;
+    font-size: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#d-arrow {
+    float: right;
+}
+
+.clicked ul {
+    max-height: 200px; /* Adjust as needed */
+}
+

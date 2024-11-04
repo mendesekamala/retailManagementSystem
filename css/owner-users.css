@@ -1,0 +1,111 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin-left: 250px;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 50px auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+/* Feedback message styles */
+.feedback {
+    text-align: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.success {
+    background-color: #28a745;
+    color: white;
+}
+
+.error {
+    background-color: #dc3545;
+    color: white;
+}
+
+.user-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px; /* Adds spacing between inputs */
+    margin-bottom: 15px;
+}
+
+.form-group {
+    flex: 1;
+}
+
+.form-group input {
+    width: 85%;
+    padding: 10px;
+    background-color: rgb(242, 241, 241); /* Makes the input stand out */
+    border: none; /* No borders */
+    color: #333;
+    font-size: 16px;
+    border-radius: 5px;
+    margin-right: 10px;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: rgb(100, 98, 98);
+    font-size: 14px; /* Label size smaller than input */
+}
+
+.role-checkboxes {
+    display: flex;
+    justify-content: space-between;
+}
+
+.role-checkboxes label {
+    flex: 1;
+    margin-right: 15px;
+    font-size: 16px;
+}
+
+.create-user-btn {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: auto; /* Aligns the button to the bottom right */
+    margin-top: 20px; /* Adds some space between the form and button */
+    width: auto; /* Makes the button smaller */
+}
+
+.create-user-btn i {
+    margin-right: 8px;
+}
+
+.create-user-btn:hover {
+    background-color: #218838;
+}

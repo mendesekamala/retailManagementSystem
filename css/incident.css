@@ -1,0 +1,70 @@
+body {
+    font-family: Arial, sans-serif;
+    margin-left: 250px;
+    padding: 20px;
+    background-color: #f4f4f4;
+}
+
+/* sell.css */
+.incident-container {
+    display: flex;
+}
+
+.left-section, .right-section {
+    width: 50%;
+    padding: 20px;
+}
+
+.section {
+    margin-bottom: 20px;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+input, select, button {
+    padding: 8px;
+    width: 100%;
+    margin-right: 10px;
+}
+
+#incident-list {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#incident-list th, #incident-list td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: center;
+}
+
+tfoot td {
+    font-weight: bold;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.suggestions {
+    position: absolute;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    max-height: 200px;
+    overflow-y: auto;
+    width: 30%;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+    z-index: 1000;
+}
+.suggestion-item {
+    padding: 10px;
+    cursor: pointer;
+}
+.suggestion-item:hover {
+    background-color: red;
+}

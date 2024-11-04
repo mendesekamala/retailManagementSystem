@@ -1,0 +1,81 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: rgb(247, 247, 247);
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+}
+
+.receipt-container {
+    width: 450px;
+    background-color: #fff;
+    padding: 20px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+    text-align: center;
+}
+
+.company-name {
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    text-decoration: underline;
+    margin-bottom: 10px;
+}
+
+.contact-table {
+    width: 100%;
+    margin-bottom: 20px;
+    font-size: 14px;
+    border-collapse: collapse;
+}
+
+.contact-table td {
+    padding: 5px 10px;
+    text-align: left;
+}
+
+.order-items {
+    margin-top: 20px;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.items-table th, .items-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.total-price {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: right;
+    margin-top: 15px;
+}
+
+.thank-you {
+    margin-top: 20px;
+    font-size: 14px;
+    font-style: italic;
+    color: #555;
+}
+
+.print-btn {
+    margin-top: 15px;
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.print-btn:hover {
+    background-color: #218838;
+}

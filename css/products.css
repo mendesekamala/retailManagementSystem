@@ -1,0 +1,205 @@
+body {
+    font-family: 'Courier New', Courier, monospace;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+.main-content {
+    margin-left: 250px;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.products-table {
+    background-color: white;
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Box-shadow effect */
+}
+
+.products-table th{
+    padding: 8px;
+    text-align: center;
+}
+
+.products-table td {
+    padding: 8px;
+    text-align: center;
+}
+
+.products-table thead {
+    background-color: #f8f8f8;  /* Special background for header */
+}
+
+.products-table th {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Row and Column Styling using nth-child */
+
+
+
+.products-table tbody tr {
+    transition: background-color 0.3s;
+    border-bottom: 2px solid rgb(134, 128, 128);
+}
+
+.products-table tbody tr:hover {
+    background-color: #ececec;  /* Hover effect */
+}
+
+.products-table td:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.products-table td:nth-child(odd) {
+    background-color: #f7f7f7;
+}
+
+.action-icon {
+    margin: 0 10px;
+    color: #333;
+}
+
+.action-icon i {
+    font-size: 18px;
+}
+
+.action-icon:hover {
+    color: #007BFF;
+    cursor: pointer;
+}
+
+.tile-container {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+.tile {
+    display: flex;
+    flex-direction: row;
+    
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+.left-tile {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+    width: 500px;
+    background-color: white;
+    padding: 10px;
+}
+
+.right-tile {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 500px;
+    padding: 10px;
+    background-color: white;
+}
+
+.room {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    background-color: #f4f4f4;
+    padding: 35px 15px 15px 15px;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.icon-count {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Space between icon and count */
+    margin-bottom: 5px;
+}
+
+.icon-most {
+    font-size: 35px;
+    border: 2px solid green;
+    color: green;
+    border-radius: 0.2em;
+    padding: 3px;
+    background-color: rgb(159, 178, 159);
+}
+.icon-zero {
+    font-size: 35px;
+    border: 2px solid red;
+    color: red;
+    border-radius: 0.2em;
+    padding: 3px;
+    background-color: rgb(231, 161, 161)
+}
+.icon-least {
+    font-size: 35px;
+    border: 2px solid purple;
+    color: purple;
+    border-radius: 0.2em;
+    padding: 3px;
+    background-color: rgb(225, 177, 225)
+}
+.icon-under {
+    font-size: 35px;
+    border: 2px solid orange;
+    color: orange;
+    border-radius: 0.2em;
+    padding: 3px;
+    background-color: rgb(236, 205, 146)
+}
+
+.count {
+    font-size: 24px;
+    font-weight: bold;
+    color: black;
+}
+
+.label {
+    font-size: 14px;
+    color: #333;
+    margin-top: 5px;
+    font-weight: bold;
+font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+.label:hover {
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+
+
+.list-section {
+    background-color: #f4f4f4;
+    border-radius: 8px;
+}
+.list-section h3{
+    margin-left: 10px;
+}
+
+/* Add styles for stock status in the product table */
+.stock-status {
+    font-weight: bold;
+    margin: -5px -5px -5px -5px;
+}
+
+.stock-status.under-stock {
+    color: green;
+    background-color: rgb(160, 214, 160);
+    border-radius: 0.3em;
+}
+
+.stock-status.fine {
+    color: purple;
+    background-color: rgb(226, 163, 226);
+    border-radius: 0.3em;
+}
+

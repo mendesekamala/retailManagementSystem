@@ -1,0 +1,169 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    background-color: rgb(247, 247, 247);
+}
+
+.content {
+    flex: 1;
+    padding: 20px;
+    margin-left: 255px;
+}
+
+.main-container {
+    display: flex;
+    height: 70vh;
+    margin: auto 50px;
+}
+
+.left-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: #fff;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 8px;
+    padding: 20px;
+}
+
+.status-icon {
+    font-size: 120px;
+    
+}
+
+.icon-cancelled { color: red; }
+.icon-created { color: blue; }
+.icon-sent { color: orange; }
+.icon-delivered { color: green; }
+
+/* New CSS for Status Text */
+.status-text {
+    font-size: 18px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.text-cancelled { color: red; }
+.text-created { color: blue; }
+.text-sent { color: orange; }
+.text-delivered { color: green; }
+
+
+label[for="orderStatus"],
+label[for="debtAmount"] {
+    display: inline-block;
+    margin-top: 20px;
+    text-align: center;
+    width: 100%;
+    font-size: 14px;
+    font-weight: bolder;
+}
+
+#orderStatus{
+    width: 140px; /* Set width similar to icon size */
+    margin: 0 auto; /* Center align */
+    padding: 8px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center; /* Center align text */
+    margin-top:15px;
+}
+#debtAmount {
+    width: 140px; /* Set width similar to icon size */
+    margin: 0 auto; /* Center align */
+    padding: 8px;
+    font-size: 18px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    text-align: center; /* Center align text */
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    background-color: rgb(246, 246, 246);
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+
+
+
+/* Receipt-like box */
+.receipt-container {
+    width: 450px;
+    background-color: #fff;
+    padding: 20px;
+    margin: 0 auto;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    border-radius: 5px;
+}
+
+/* Order items styling */
+.order-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+}
+
+.order-item i {
+    color: red;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+/* Order details alignment */
+.order-item .sn { min-width: 20px; text-align: right;  }
+.order-item .name { flex: 1; margin-left: 5px; white-space: nowrap; /* Prevents wrapping */}
+.order-item .quantity {
+    align-items: left;
+    cursor: pointer;
+}
+
+.quantity i {
+    color: #007bff;
+    
+    cursor: pointer;
+    visibility: hidden;
+}
+
+.quantity:hover i {
+    visibility: visible;
+}
+
+.order-item .price{
+    text-align: left;
+    margin-left: auto;
+    min-width: 80px;
+}
+
+.order-item .total {
+    text-align: right;
+    margin-left: auto;
+    min-width: 80px;
+}
+
+/* Total Price Styling */
+.total-price {
+    font-size: 16px;
+    font-weight: bold;
+    text-align: right;
+    margin-top: 15px;
+}
+.finish-editing-button {
+    display: block;
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.finish-editing-button:hover {
+    background-color: #218838;
+}
