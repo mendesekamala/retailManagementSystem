@@ -26,13 +26,9 @@
             </ul>
         </li>
 
-        
-
-        
-
         <li><a href="orders.php"><i class="bx bx-bar-chart"></i> Reports</a></li>
 
-        <li><a href="users/delivery_man-users.php"><i class="bx bx-user"></i> User</a></li>
+        <li class="drops"><a href="user.php"> <i class="bx bx-user-circle"></i>user</a></li>
     </ul>
 </div>
 

@@ -23,14 +23,20 @@ if ($orderData['status'] === 'cancelled') {
     exit;
 }
 
+// Check if the order is already delivered
+if ($orderData['status'] === 'delivered') {
+    echo "<script>alert('The order is already delivered'); window.location.href = 'orders.php';</script>";
+    exit;
+}
+
 $orderData = $orderResult->fetch_assoc();
 $total = $orderData['total'];
 $payment_method = $orderData['payment_method'];
 
-// Set the order status to 'cancelled'
-$updateOrderStatus = $conn->prepare("UPDATE orders SET status = 'cancelled' WHERE order_id = ?");
-$updateOrderStatus->bind_param("i", $order_id);
-$updateOrderStatus->execute();
+// Set the status of each order item to 'cancelled'
+$updateOrderItemsStatus = $conn->prepare("UPDATE order_items SET status = 'cancelled' WHERE order_id = ?");
+$updateOrderItemsStatus->bind_param("i", $order_id);
+$updateOrderItemsStatus->execute();
 
 // Reverse the quantity of each item in the order back to the products table
 $orderItemsQuery = $conn->prepare("

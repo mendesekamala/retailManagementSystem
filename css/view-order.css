@@ -79,3 +79,17 @@ body {
 .print-btn:hover {
     background-color: #218838;
 }
+.delivered-btn {
+    margin-top: 15px;
+    padding: 8px 12px;
+    font-size: 14px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.delivered-btn:hover {
+    background-color: #0056b3;
+}

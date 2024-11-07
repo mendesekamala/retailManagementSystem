@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 04, 2024 at 01:41 PM
+-- Generation Time: Nov 04, 2024 at 09:34 PM
 -- Server version: 10.4.22-MariaDB
 -- PHP Version: 7.3.33
 
@@ -37,7 +37,7 @@ CREATE TABLE `money` (
 --
 
 INSERT INTO `money` (`cash`, `money_id`) VALUES
-('108200.00', 1);
+(NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -49,7 +49,7 @@ CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
   `total` decimal(10,2) NOT NULL,
   `time` datetime DEFAULT current_timestamp(),
-  `status` enum('created','sent','cancelled') DEFAULT 'created',
+  `status` enum('created','sent','delivered','cancelled') DEFAULT 'created',
   `customer_name` varchar(255) NOT NULL,
   `payment_method` enum('cash','debt') NOT NULL,
   `debt_amount` decimal(10,2) DEFAULT 0.00,
@@ -61,13 +61,14 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `total`, `time`, `status`, `customer_name`, `payment_method`, `debt_amount`, `profit`) VALUES
-(87, '144000.00', '2024-10-30 00:05:48', 'created', 'kitic', 'cash', '0.00', '20000.00'),
+(87, '144000.00', '2024-10-30 00:05:48', 'cancelled', 'kitic', 'cash', '0.00', '20000.00'),
 (88, '144000.00', '2024-10-30 00:11:39', 'cancelled', 'mudathir', 'cash', '0.00', '20000.00'),
-(89, '168000.00', '2024-10-30 00:17:27', 'cancelled', 'chama', 'cash', '0.00', '25000.00'),
-(90, '126000.00', '2024-10-30 13:45:00', 'created', 'jay', 'cash', '0.00', '18750.00'),
-(91, '31000.00', '2024-10-31 10:36:36', 'sent', 'messi', 'debt', '20000.00', '3000.00'),
-(92, '198000.00', '2024-10-31 21:07:59', 'created', 'kiss', 'cash', '0.00', '26000.00'),
-(93, '83200.00', '2024-10-31 23:02:36', 'created', 'mendes', 'cash', '0.00', '12400.00');
+(89, '168000.00', '2024-10-30 00:17:27', 'created', 'chama', 'cash', '0.00', '25000.00'),
+(90, '126000.00', '2024-10-30 13:45:00', 'sent', 'jay', 'cash', '0.00', '18750.00'),
+(91, '31000.00', '2024-10-31 10:36:36', 'created', 'messi', 'debt', '20000.00', '3000.00'),
+(92, '198000.00', '2024-10-31 21:07:59', 'delivered', 'kiss', 'cash', '0.00', '26000.00'),
+(93, '83200.00', '2024-10-31 23:02:36', 'created', 'mendes', 'cash', '0.00', '12400.00'),
+(94, '105200.00', '2024-11-04 23:14:14', 'created', 'mimi', 'cash', '0.00', '11400.00');
 
 -- --------------------------------------------------------
 
@@ -82,6 +83,7 @@ CREATE TABLE `order_items` (
   `name` varchar(50) NOT NULL,
   `sold_in` varchar(20) DEFAULT NULL,
   `quantity` int(11) NOT NULL,
+  `status` enum('created','sent','delivered','cancelled') DEFAULT 'created',
   `buying_price` decimal(10,2) NOT NULL,
   `selling_price` decimal(10,2) NOT NULL,
   `sum` decimal(10,2) NOT NULL
@@ -91,21 +93,24 @@ CREATE TABLE `order_items` (
 -- Dumping data for table `order_items`
 --
 
-INSERT INTO `order_items` (`item_id`, `order_id`, `product_id`, `name`, `sold_in`, `quantity`, `buying_price`, `selling_price`, `sum`) VALUES
-(55, 87, 6, 'santa lucia', 'whole', 2, '27000.00', '32000.00', '64000.00'),
-(56, 87, 3, 'jamaa', 'whole', 2, '35000.00', '40000.00', '80000.00'),
-(57, 88, 6, 'santa lucia', 'whole', 2, '27000.00', '32000.00', '64000.00'),
-(58, 88, 3, 'jamaa', 'whole', 2, '35000.00', '40000.00', '80000.00'),
-(59, 89, 1, '25kgs sembe (kg)', 'kg', 25, '1400.00', '1600.00', '32000.00'),
-(60, 89, 6, 'santa lucia', 'whole', 4, '27000.00', '32000.00', '64000.00'),
-(61, 90, 3, 'jamaa (mche)', 'mche', 15, '1750.00', '2000.00', '20000.00'),
-(62, 90, 6, 'santa lucia', 'whole', 3, '27000.00', '32000.00', '96000.00'),
-(64, 91, 2, 'ngano', 'whole', 1, '28000.00', '31000.00', '62000.00'),
-(66, 92, 2, 'ngano', 'whole', 2, '28000.00', '31000.00', '62000.00'),
-(67, 92, 6, 'santa lucia', 'whole', 3, '27000.00', '32000.00', '64000.00'),
-(68, 92, 1, '25kgs sembe', 'whole', 1, '35000.00', '40000.00', '40000.00'),
-(69, 93, 1, '25kgs sembe (kg)', 'kg', 12, '1400.00', '1600.00', '19200.00'),
-(70, 93, 6, 'santa lucia', 'whole', 2, '27000.00', '32000.00', '64000.00');
+INSERT INTO `order_items` (`item_id`, `order_id`, `product_id`, `name`, `sold_in`, `quantity`, `status`, `buying_price`, `selling_price`, `sum`) VALUES
+(55, 87, 6, 'santa lucia', 'whole', 2, 'cancelled', '27000.00', '32000.00', '64000.00'),
+(56, 87, 3, 'jamaa', 'whole', 2, 'cancelled', '35000.00', '40000.00', '80000.00'),
+(57, 88, 6, 'santa lucia', 'whole', 2, 'cancelled', '27000.00', '32000.00', '64000.00'),
+(58, 88, 3, 'jamaa', 'whole', 2, 'cancelled', '35000.00', '40000.00', '80000.00'),
+(59, 89, 1, '25kgs sembe (kg)', 'kg', 25, 'created', '1400.00', '1600.00', '32000.00'),
+(60, 89, 6, 'santa lucia', 'whole', 4, 'created', '27000.00', '32000.00', '64000.00'),
+(61, 90, 3, 'jamaa (mche)', 'mche', 15, 'sent', '1750.00', '2000.00', '20000.00'),
+(62, 90, 6, 'santa lucia', 'whole', 3, 'sent', '27000.00', '32000.00', '96000.00'),
+(64, 91, 2, 'ngano', 'whole', 1, 'created', '28000.00', '31000.00', '62000.00'),
+(66, 92, 2, 'ngano', 'whole', 2, 'delivered', '28000.00', '31000.00', '62000.00'),
+(67, 92, 6, 'santa lucia', 'whole', 3, 'delivered', '27000.00', '32000.00', '64000.00'),
+(68, 92, 1, '25kgs sembe', 'whole', 1, 'delivered', '35000.00', '40000.00', '40000.00'),
+(69, 93, 1, '25kgs sembe (kg)', 'kg', 12, 'created', '1400.00', '1600.00', '19200.00'),
+(70, 93, 6, 'santa lucia', 'whole', 2, 'created', '27000.00', '32000.00', '64000.00'),
+(71, 94, 2, 'ngano', 'whole', 2, 'created', '28000.00', '31000.00', '62000.00'),
+(72, 94, 3, 'jamaa', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(73, 94, 1, '25kgs sembe (kg)', 'kg', 2, 'created', '1400.00', '1600.00', '3200.00');
 
 -- --------------------------------------------------------
 
@@ -128,10 +133,10 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`product_id`, `name`, `quantity`, `quantified`, `under_stock_reminder`, `buying_price`, `selling_price`) VALUES
-(1, '25kgs sembe', '1.52', 'sacks', '15.00', '35000.00', '40000.00'),
-(2, 'ngano', '7.00', 'sack', '15.00', '28000.00', '31000.00'),
-(3, 'jamaa', '10.25', 'catton', '10.00', '35000.00', '40000.00'),
-(6, 'santa lucia', '20.00', 'box', '7.00', '27000.00', '32000.00'),
+(1, '25kgs sembe', '1.44', 'sacks', '15.00', '35000.00', '40000.00'),
+(2, 'ngano', '5.00', 'sack', '15.00', '28000.00', '31000.00'),
+(3, 'jamaa', '13.25', 'catton', '10.00', '35000.00', '40000.00'),
+(6, 'santa lucia', '24.00', 'box', '7.00', '27000.00', '32000.00'),
 (7, 'azam nazi', '25.00', 'box', '7.00', '12000.00', '15000.00'),
 (8, 'mo xtra', '0.00', 'catton', '30.00', '4700.00', '5000.00'),
 (9, '25kgs sukari', '0.00', 'sack', '10.00', '45000.00', '50000.00');
@@ -279,11 +284,11 @@ CREATE TABLE `units` (
 --
 
 INSERT INTO `units` (`unit_id`, `product_id`, `name`, `per_single_quantity`, `buying_price`, `selling_price`, `available_units`) VALUES
-(1, 1, 'kg', '25.00', '1400.00', '1600.00', '38.00'),
-(2, 1, 'half_kg', '50.00', '700.00', '800.00', '76.00'),
-(3, 1, 'quarter_kg', '100.00', '350.00', '400.00', '152.00'),
-(4, 3, 'mche', '20.00', '1750.00', '2000.00', '200.00'),
-(5, 3, 'nusu mche', '40.00', '875.00', '1000.00', '400.00');
+(1, 1, 'kg', '25.00', '1400.00', '1600.00', '36.00'),
+(2, 1, 'half_kg', '50.00', '700.00', '800.00', '72.00'),
+(3, 1, 'quarter_kg', '100.00', '350.00', '400.00', '144.00'),
+(4, 3, 'mche', '20.00', '1750.00', '2000.00', '260.00'),
+(5, 3, 'nusu mche', '40.00', '875.00', '1000.00', '520.00');
 
 -- --------------------------------------------------------
 
@@ -434,13 +439,13 @@ ALTER TABLE `money`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=94;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=95;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=74;
 
 --
 -- AUTO_INCREMENT for table `products`

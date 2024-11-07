@@ -70,26 +70,21 @@ if (isset($_SESSION['error_message'])) {
             </table>
 
             <!-- Add new unit form -->
+            <!-- Add new unit form -->
             <h2>Add New Unit</h2>
             <form action="confirm-new_unit.php" method="POST" class="unit-form">
                 <input type="hidden" name="product_id" value="<?= $product_id; ?>">
-                <label>Unit Name:</label>
-                <input type="text" name="name" required>
-                
-                <label>Per Single Quantity:</label>
-                <input type="number" step="0.01" name="per_single_quantity" required oninput="calculateAvailableUnits(<?= $product['quantity']; ?>)">
+                <input type="text" name="name" placeholder="Unit Name" required>
+                <input type="number" step="0.01" name="per_single_quantity" placeholder="Per Single Quantity" required oninput="calculateAvailableUnits(<?= $product['quantity']; ?>)">
+                <input type="number" step="0.01" name="buying_price" placeholder="Buying Price" required>
+                <input type="number" step="0.01" name="selling_price" placeholder="Selling Price" required>
+                <input type="text" id="available_units" name="available_units" placeholder="Available Units" disabled>
+                <button type="submit" class="add-unit-button">
+                    <i class='bx bx-plus'></i> Add Unit
+                </button>
 
-                <label>Buying Price:</label>
-                <input type="number" step="0.01" name="buying_price" required>
-
-                <label>Selling Price:</label>
-                <input type="number" step="0.01" name="selling_price" required>
-
-                <label>Available Units:</label>
-                <input type="text" id="available_units" name="available_units" readonly>
-
-                <button type="submit">Confirm Unit</button>
             </form>
+
         </div>
 
         <script>

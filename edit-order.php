@@ -2,6 +2,30 @@
 session_start();
 include('db_connection.php');
 
+// Check if the user is logged in
+if (isset($_SESSION['user_id'])) {
+    $user_id = $_SESSION['user_id'];
+    
+    // Fetch user roles from the database
+    $queryUserRole = "SELECT delivery_man, store_keeper FROM roles WHERE user_id = $user_id";
+    $resultUserRole = mysqli_query($conn, $queryUserRole);
+
+    if ($resultUserRole) {
+        $role = mysqli_fetch_assoc($resultUserRole);
+
+        // Redirect based on user role
+        if ($role['delivery_man'] === 'yes') {
+            header("Location: deliveryman_edit-order.php?order_id=" . urlencode($_GET['order_id']));
+            exit;
+        } elseif ($role['store_keeper'] === 'yes') {
+            header("Location: storekeeper_edit-order.php?order_id=" . urlencode($_GET['order_id']));
+            exit;
+        }
+    } else {
+        echo "Error: Query failed - " . mysqli_error($conn);
+    }
+}
+
 // Get the order ID from the URL
 $order_id = $_GET['order_id'];
 
@@ -22,6 +46,16 @@ $debtAmount = $orderDetails['debt_amount'] ?? 0;
 if ($status === 'cancelled') {
     echo "<script>
             alert('You cannot edit a cancelled order');
+            window.onload = function() {
+                document.getElementById('editOrderForm').style.pointerEvents = 'none';
+                document.getElementById('editOrderForm').style.opacity = '0.6';
+            }
+          </script>";
+}
+// Alert and disable editing if the order is delivered
+if ($status === 'delivered') {
+    echo "<script>
+            alert('You cannot edit a delivered order');
             window.onload = function() {
                 document.getElementById('editOrderForm').style.pointerEvents = 'none';
                 document.getElementById('editOrderForm').style.opacity = '0.6';
@@ -64,11 +98,7 @@ if ($status === 'cancelled') {
                             <?php echo ucfirst($status); ?>
                         </div>
 
-                        <select name="order_status" id="orderStatus" onchange="updateStatusText()">
-                            <option value="created" <?php echo ($status == 'created') ? 'selected' : ''; ?>>Created</option>
-                            <option value="sent" <?php echo ($status == 'sent') ? 'selected' : ''; ?>>Sent</option>
-                            <option value="delivered" <?php echo ($status == 'delivered') ? 'selected' : ''; ?>>Delivered</option>
-                        </select>
+                        
 
                         <?php if ($debtAmount > 0): ?>
                             <label for="debtAmount" class="debt-label">Debt Amount</label>

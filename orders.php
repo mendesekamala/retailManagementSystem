@@ -18,17 +18,17 @@ $queryStatusCounts = "
     FROM orders 
     $whereClause
     GROUP BY status";
-    $resultStatusCounts = mysqli_query($conn, $queryStatusCounts);
-    if (!$resultStatusCounts) {
-        die("Error with the query: " . mysqli_error($conn));
-    }
-    
+$resultStatusCounts = mysqli_query($conn, $queryStatusCounts);
+if (!$resultStatusCounts) {
+    die("Error with the query: " . mysqli_error($conn));
+}
 
 // Initialize status counts
 $orderCounts = [
     'created' => 0,
     'sent' => 0,
-    'cancelled' => 0
+    'cancelled' => 0,
+    'delivered' => 0
 ];
 
 // Assign the counts to the correct statuses
@@ -39,6 +39,28 @@ while ($row = mysqli_fetch_assoc($resultStatusCounts)) {
 // Fetch orders based on filter
 $queryOrders = "SELECT * FROM orders $whereClause";
 $resultOrders = mysqli_query($conn, $queryOrders);
+
+// Function to determine the order status based on associated order_items
+function determineOrderStatus($orderId, $conn) {
+    $itemStatusQuery = "
+        SELECT status, COUNT(*) AS count 
+        FROM order_items 
+        WHERE order_id = $orderId 
+        GROUP BY status
+        ORDER BY count DESC";
+    
+    $itemStatusResult = mysqli_query($conn, $itemStatusQuery);
+
+    if (mysqli_num_rows($itemStatusResult) == 1) {
+        // All items have the same status
+        $singleStatusRow = mysqli_fetch_assoc($itemStatusResult);
+        return $singleStatusRow['status'];
+    } else {
+        // Items have mixed statuses, take the most frequent
+        $row = mysqli_fetch_assoc($itemStatusResult);
+        return $row['status'];
+    }
+}
 ?>
 
 <!DOCTYPE html>
@@ -46,195 +68,10 @@ $resultOrders = mysqli_query($conn, $queryOrders);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/orders.css">
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <title>Orders</title>
-
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin-left: 250px;
-            background-color: #f4f4f4;
-        }
-
-        .content {
-            padding: 0 120px;
-        }
-
-        /* Orders Table */
-        .orders-table {
-            width: 100%;
-            border-collapse: collapse;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Box-shadow effect */
-        }
-
-        .orders-table th, .orders-table td {
-            padding: 12px;
-            text-align: center;
-        }
-
-        /* Table Header Styling */
-        .orders-table thead {
-            background-color: #f8f8f8;  /* Special background for header */
-        }
-
-        .orders-table th {
-            font-weight: bold;
-            color: #333;
-        }
-
-        /* Row and Column Styling using nth-child */
-        .orders-table tr:nth-child(even) {
-            background-color: #f9f9f9;  /* Alternating row colors */
-        }
-
-        .orders-table tbody tr {
-            transition: background-color 0.3s;
-            border-bottom: 2px solid rgb(134, 128, 128);
-        }
-
-        .orders-table tbody tr:hover {
-            background-color: #ececec;  /* Hover effect */
-        }
-
-        .orders-table td:nth-child(odd) {
-            background-color: #ffffff;
-        }
-
-        .orders-table td:nth-child(even) {
-            background-color: #f7f7f7;
-        }
-
-        /* Action Icons */
-        .action-icon {
-            margin: 0 8px;
-            color: #007bff;
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 17px;
-        }
-
-        .action-icon:hover {
-            color: #0056b3;
-        }
-
-        .action-icon.edit:hover {
-            color: #28a745; /* Green for edit */
-        }
-
-        .action-icon.delete:hover {
-            color: #dc3545; /* Red for delete */
-        }
-
-        .action-icon.view:hover {
-            color: #17a2b8; /* Blue for view */
-        }
-
-        /* Remove lines between rows and columns */
-        .orders-table th, .orders-table td {
-            border: none;  /* No borders */
-        }
-
-        /* Status Colors in Table */
-        .orders-table .created {
-            color: blue;
-            font-weight: bold;
-        }
-
-        .orders-table .sent {
-            color: rgb(255, 174, 0);
-            font-weight: bold;
-        }
-
-        .orders-table .cancelled {
-            color: red;
-            font-weight: bold;
-        }
-
-        /* Filter Container */
-        .filter-container {
-            display: flex;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .filter-container form {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .filter-container label {
-            font-weight: bold;
-        }
-
-        input[type="date"] {
-            padding: 8px 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-
-        /* Button Style with Filter Icon */
-        .btn-filter {
-            display: flex;
-            align-items: center;
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-
-        .btn-filter:hover {
-            background-color: #0056b3;
-        }
-
-        /* Summary Tiles */
-        .summary-tiles {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .tile {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            width: 30%;
-        }
-
-        .tile p {
-            font-size: 36px;
-            margin: 0;
-        }
-
-        .tile span {
-            font-size: 14px;
-        }
-
-        /* Tile Colors */
-        .created {
-            border-left: 4px solid blue;
-        }
-
-        .sent {
-            border-left: 4px solid  rgb(255, 174, 0);
-        }
-
-        .cancelled {
-            border-left: 4px solid red;
-        }
-
-    </style>
-
 </head>
 
 <?php include('sidebar.php'); ?>
@@ -266,6 +103,10 @@ $resultOrders = mysqli_query($conn, $queryOrders);
                 <p><?php echo $orderCounts['cancelled']; ?></p>
                 <span>Cancelled</span>
             </div>
+            <div class="tile delivered">
+                <p><?php echo $orderCounts['delivered']; ?></p>
+                <span>Delivered</span>
+            </div>
         </div>
 
         <!-- Orders Table -->
@@ -284,13 +125,24 @@ $resultOrders = mysqli_query($conn, $queryOrders);
                 <?php
                 if (mysqli_num_rows($resultOrders) > 0) {
                     while ($row = mysqli_fetch_assoc($resultOrders)) {
-                        $time = date("H:i", strtotime($row['time']));  // Format time without seconds
-                        $date = date("Y-m-d", strtotime($row['time']));  // Extract date
+                        // Determine the status for the current order based on its items
+                        $orderStatus = determineOrderStatus($row['order_id'], $conn);
+                        
+                        // Update order status in the database if it differs
+                        if ($row['status'] != $orderStatus) {
+                            $updateOrderStatus = "UPDATE orders SET status='$orderStatus' WHERE order_id=" . $row['order_id'];
+                            mysqli_query($conn, $updateOrderStatus);
+                        }
+
+                        // Format time and date
+                        $time = date("H:i", strtotime($row['time']));
+                        $date = date("Y-m-d", strtotime($row['time']));
+                        
                         echo "<tr>";
                         echo "<td>" . $row['order_id'] . "</td>";
                         echo "<td>" . $date . "</td>";
                         echo "<td>" . $time . "</td>";
-                        echo "<td class='" . $row['status'] . "'>" . ucfirst($row['status']) . "</td>";
+                        echo "<td class='" . $orderStatus . "'>" . ucfirst($orderStatus) . "</td>";
                         echo "<td>" . $row['total'] . "</td>";
                         echo "<td>
                                 <a href='edit-order.php?order_id=" . $row['order_id'] . "' class='action-icon edit'><i class='bx bx-pencil'></i></a>

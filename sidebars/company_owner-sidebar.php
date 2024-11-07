@@ -42,7 +42,14 @@
 
         <li><a href="reports.php"><i class="bx bx-bar-chart"></i> Reports</a></li>
 
-        <li><a href="owner-users.php"><i class="bx bx-user"></i> User</a></li>
+        
+
+        <li class="dropdown"><a href="#"><i class="bx bx-user"></i> users <i class="bx bx-chevron-right" id="d-arrow"></i></a>
+            <ul>
+                <li class="drops"><a href="user.php"> <i class="bx bx-user-circle"></i>my profile</a></li>
+                <li class="drops"><a href="owner-users.php"> <i class="bx bx-list-ul"></i> manage users</a></li>
+            </ul>
+        </li>
     </ul>
 </div>
 

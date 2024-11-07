@@ -36,32 +36,48 @@ body {
     text-align: center;
 }
 
-.unit-form label {
-    display: block;
-    margin: 8px 0 4px;
-    color: #555;
+.unit-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-.unit-form input[type="text"], .unit-form input[type="number"] {
-    width: 100%;
+.unit-form input[type="text"],
+.unit-form input[type="number"] {
+    width: calc(18% - 10px); /* Adjust width as needed */
     padding: 8px;
-    margin-bottom: 10px;
+    margin-bottom: 0;
     border: 1px solid #ddd;
     border-radius: 4px;
 }
 
-.unit-form button {
-    padding: 10px 15px;
+.unit-form input[readonly] {
+    background-color: #f4f4f9;
+}
+
+.add-unit-button {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
     background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
+    font-size: 16px;
 }
 
-.unit-form button:hover {
+.add-unit-button:hover {
     background-color: #45a049;
 }
+
+.add-unit-button i {
+    font-size: 20px;
+    margin-right: 5px;
+}
+
 
 .success-message, .error-message {
     padding: 10px;

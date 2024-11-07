@@ -28,19 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Store roles in session
             $_SESSION['roles'] = $roles;
 
-            // Redirect based on role
-            if ($roles['cashier'] === 'yes') {
-                header("Location: user-cashier.php");
-            } elseif ($roles['company_owner'] === 'yes') {
-                header("Location: user-company_owner.php");
-            } elseif ($roles['delivery_man'] === 'yes') {
-                header("Location: user-delivery_man.php");
-            } elseif ($roles['store_keeper'] === 'yes') {
-                header("Location: user-store_keeper.php");
-            } else {
-                // If no specific role, redirect to a default page
-                header("Location: users.php");
-            }
+            header("Location: user.php");
 
             exit(); // Ensure no further code runs after the redirect
         } else {

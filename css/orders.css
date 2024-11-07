@@ -97,6 +97,10 @@ body {
     color: red;
     font-weight: bold;
 }
+.orders-table .delivered {
+    color: green;
+    font-weight: bold;
+}
 
 /* Filter Container */
 .filter-container {
@@ -178,4 +182,7 @@ input[type="date"] {
 
 .cancelled {
     border-left: 4px solid red;
+}
+.delivered {
+    border-left: 4px solid green;
 }
