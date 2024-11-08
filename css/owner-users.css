@@ -109,3 +109,80 @@ h1 {
 .create-user-btn:hover {
     background-color: #218838;
 }
+
+
+
+/* Users Table Styling */
+.container-users {
+    max-width: 750px;
+    margin: 50px auto;
+    background-color: #ffffff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.users-table th, .users-table td {
+    padding: 10px;
+    text-align: left;
+    font-size: 16px;
+}
+
+.users-table thead {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+.users-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.users-table tr:hover {
+    background-color: #e8f4ff;
+}
+
+.users-table td i {
+    font-size: 18px;
+    cursor: pointer;
+    margin-right: 10px;
+}
+
+/* Role Colors */
+.role-cashier {
+    color: #d69e2e;
+    background-color: #fff4cc;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.role-deliveryman {
+    color: #3a7a2a;
+    background-color: #d7f3d7;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.role-storekeeper {
+    color: #6a0dad;
+    background-color: #f2e6ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.role-owner {
+    color: rgb(164, 103, 12);
+    background-color: #e4d9c6;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+

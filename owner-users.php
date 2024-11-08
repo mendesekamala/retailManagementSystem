@@ -2,6 +2,14 @@
 // Include the database connection
 include('db_connection.php');
 
+session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id'])) {
+    header("Location: register.php");
+    exit();
+}
+
 $feedback = ''; // To store success or error messages
 $feedback_class = ''; // To store the CSS class for styling the message
 
@@ -15,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash the password
 
     // Role checkboxes
-    $company_owner = isset($_POST['company_owner']) ? 'yes' : 'no';
+    $admin = isset($_POST['admin']) ? 'yes' : 'no';
     $cashier = isset($_POST['cashier']) ? 'yes' : 'no';
     $store_keeper = isset($_POST['store_keeper']) ? 'yes' : 'no';
     $delivery_man = isset($_POST['delivery_man']) ? 'yes' : 'no';
@@ -31,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         // Insert role data into the roles table
         $insertRoleQuery = "
-            INSERT INTO roles (user_id, company_owner, cashier, store_keeper, delivery_man)
-            VALUES ('$user_id', '$company_owner', '$cashier', '$store_keeper', '$delivery_man')";
+            INSERT INTO roles (user_id, company_owner, cashier, store_keeper, delivery_man, admin)
+            VALUES ('$user_id', '$company_owner', '$cashier', '$store_keeper', '$delivery_man', '$admin')";
 
         if (mysqli_query($conn, $insertRoleQuery)) {
             // Update the user's role_id in the users table from the roles table
@@ -55,6 +63,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $feedback_class = "error";
     }
 }
+
+
+// Get company ID of the logged-in company owner
+$user_id = $_SESSION['user_id'];
+$companyQuery = "SELECT company_id FROM users WHERE user_id = '$user_id' LIMIT 1";
+$companyResult = mysqli_query($conn, $companyQuery);
+$companyRow = mysqli_fetch_assoc($companyResult);
+$company_id = $companyRow['company_id'];
+
+// Fetch users associated with the logged-in owner's company
+$usersQuery = "
+    SELECT u.username, CONCAT(u.firstName, ' ', u.lastName) AS fullname, u.email, u.phoneNo,
+           CASE
+               WHEN r.company_owner = 'yes' THEN 'owner'
+               WHEN r.cashier = 'yes' THEN 'cashier'
+               WHEN r.store_keeper = 'yes' THEN 'storekeeper'
+               WHEN r.delivery_man = 'yes' THEN 'deliveryman'
+               ELSE 'unknown'
+           END AS role
+    FROM users u
+    JOIN roles r ON u.role_id = r.role_id
+    WHERE u.company_id = '$company_id'";
+$usersResult = mysqli_query($conn, $usersQuery);
 ?>
 
 <!DOCTYPE html>
@@ -67,32 +98,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <link rel="stylesheet" href="css/owner-users.css">
 </head>
 
-<?php
-    session_start();
-    include('sidebars-function.php');
-
-    // Check if user is logged in
-    if (!isset($_SESSION['user_id'])) {
-        header("Location: register.php");
-        exit();
-    }
-
-    // Fetch roles from session
-    if (isset($_SESSION['roles'])) {
-        $roles = $_SESSION['roles'];
-    } else {
-        // Handle case where roles are not set in session (fallback)
-        $roles = ['company_owner' => 'no', 'cashier' => 'no', 'store_keeper' => 'no', 'delivery_man' => 'no'];
-    }
-
-    // Fetch roles from session
-    $roles = $_SESSION['roles'];
-
-    // Include the sidebar based on the role
-    include_sidebar_by_role($roles);
-?>
+<?php include ('sidebar.php'); ?>
 
 <body>
+
+
+<div class="container-users"> 
+    <h1><i class='bx bx-user'></i> Company Users</h1>
+
+    <!-- Users Table -->
+    <table class="users-table">
+        <thead>
+            <tr>
+                
+                <th>Full Name</th>
+                <th>Email</th>
+                <th>Phone No</th>
+                <th>Role</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($user = mysqli_fetch_assoc($usersResult)): ?>
+                <tr>
+                    
+                    <td><?php echo htmlspecialchars($user['fullname']); ?></td>
+                    <td><?php echo htmlspecialchars($user['email']); ?></td>
+                    <td><?php echo htmlspecialchars($user['phoneNo']); ?></td>
+                    <td class="role-<?php echo htmlspecialchars($user['role']); ?>">
+                        <?php echo ucfirst($user['role']); ?>
+                    </td>
+                    <td>
+                        <i class='bx bx-pencil' title="Edit"></i>
+                        <i class='bx bx-show' title="View"></i>
+                        <i class='bx bx-trash' title="Delete"></i>
+                    </td>
+                </tr>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+</div>
+
+
 <div class="container">
     <!-- Feedback message -->
     <?php if ($feedback): ?>
@@ -137,6 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Role checkboxes -->
     <h2>Assign Roles</h2>
     <div class="form-row role-checkboxes">
+        <label><input type="checkbox" name="admin"> Admin</label>
         <label><input type="checkbox" name="cashier"> Cashier</label>
         <label><input type="checkbox" name="store_keeper"> Store Keeper</label>
         <label><input type="checkbox" name="delivery_man"> Delivery Man</label>
@@ -147,6 +195,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </form>
 
 </div>
+
+
+
 
 <!-- JavaScript to hide the message after 3 seconds -->
 <script>
