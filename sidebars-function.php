@@ -2,6 +2,8 @@
     function include_sidebar_by_role($roles) {
         if ($roles['company_owner'] === 'yes') {
             include('sidebars/company_owner-sidebar.php');
+        } elseif ($roles['admin'] === 'yes') {
+            include('sidebars/company_owner-sidebar.php');
         } elseif ($roles['cashier'] === 'yes') {
             include('sidebars/cashier-sidebar.php');
         } elseif ($roles['store_keeper'] === 'yes') {

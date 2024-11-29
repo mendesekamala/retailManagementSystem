@@ -23,6 +23,7 @@ body {
 /* Table Header Styling */
 .orders-table thead {
     background-color: #f8f8f8;  /* Special background for header */
+    border: 1px solid black;
 }
 
 .orders-table th {

@@ -62,6 +62,15 @@ h1 {
     box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
 }
 
+.form-group select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 16px;
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
 /* New styling for aligning inputs in a row */
 .form-row {
     display: flex;

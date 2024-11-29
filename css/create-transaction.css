@@ -7,7 +7,7 @@ body {
 .content {
     max-width: 400px;
     margin: 50px auto;
-    padding:20px;
+    padding: 20px;
     background-color: #fff;
     box-shadow: 0px 0px 15px rgba(0, 0, 0, 0.1);
     border-radius: 1em;
@@ -31,16 +31,6 @@ input[type="text"], input[type="number"], textarea {
     transition: all 0.3s ease-in-out;
 }
 
-select{
-    width: 110%;
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease-in-out;
-}
-
 input[type="text"]#business-cash {
     width: 80%;
     padding: 12px;
@@ -54,10 +44,31 @@ input[type="text"]#business-cash {
     font-weight: bold;
 }
 
-textarea {
-    resize: none;
+select {
+    width: 100%; /* Ensure the selects take up available space */
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
 }
 
+.transaction-inputs {
+    display: flex; /* Apply flexbox */
+    justify-content: space-between; /* Space out the selects */
+    gap: 20px; /* Space between the inputs */
+    width: 100%;
+}
+
+.input-group {
+    flex: 1; /* Ensure inputs take up equal width */
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 5px;
+}
 
 input[type="submit"] {
     width: 30%;
@@ -79,4 +90,39 @@ input[type="submit"]:hover {
 
 input[type="submit"]:active {
     background-color: #1e7e34;
+}
+
+.message {
+    display: none;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    text-align: center;
+}
+
+.success {
+    background-color: green;
+    color: white;
+}
+
+.error {
+    background-color: red;
+    color: white;
+}
+
+
+/* Style for the settings icon */
+.settings-icon {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 30px;
+    cursor: pointer;
+    color: #333;
+    transition: color 0.3s ease;
+}
+
+.settings-icon:hover {
+    color: #007bff;
 }

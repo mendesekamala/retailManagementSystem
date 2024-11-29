@@ -1,7 +1,5 @@
 <?php
 session_start();
-
-// Include database connection
 include('db_connection.php');
 
 // Initialize an empty message variable
@@ -13,21 +11,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $under_stock_reminder = $_POST['under_stock_reminder'];
     $buying_price = $_POST['buying_price'];
     $selling_price = $_POST['selling_price'];
-
-   // Define a variable for quantity
+    
+    // Define a variable for quantity
     $quantity = 0;
 
-    // Insert product into database
-    $sql = "INSERT INTO products (name, quantified, under_stock_reminder, buying_price, selling_price, quantity) VALUES (?, ?, ?, ?, ?, ?)";
+    // Retrieve user_id and company_id from session
+    $created_by = $_SESSION['user_id'];
+    $company_id = $_SESSION['company_id'];
+
+    // Insert product into database with created_by and company_id
+    $sql = "INSERT INTO products (name, quantified, under_stock_reminder, buying_price, selling_price, quantity, created_by, company_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
 
     if (!$stmt) {
-        // Display SQL error if prepare() fails
         die("Error in prepare: " . $conn->error);
     }
 
     // Bind parameters
-    $stmt->bind_param("ssdddi", $name, $quantified_as, $under_stock_reminder, $buying_price, $selling_price, $quantity);
+    $stmt->bind_param("ssdddiii", $name, $quantified_as, $under_stock_reminder, $buying_price, $selling_price, $quantity, $created_by, $company_id);
 
     if ($stmt->execute()) {
         $message = "Product added successfully!";
@@ -35,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $message = "Error: " . $stmt->error;
     }
 }
-
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">

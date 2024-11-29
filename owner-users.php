@@ -21,17 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $phoneNo = $_POST['phoneNo'];
     $password = password_hash($_POST['password'], PASSWORD_DEFAULT); // Hash the password
+    $company_id = $_SESSION['company_id'] ?? null;
 
     // Role checkboxes
     $admin = isset($_POST['admin']) ? 'yes' : 'no';
+    $company_owner = isset($_POST['company_owner']) ? 'yes' : 'no';
     $cashier = isset($_POST['cashier']) ? 'yes' : 'no';
     $store_keeper = isset($_POST['store_keeper']) ? 'yes' : 'no';
     $delivery_man = isset($_POST['delivery_man']) ? 'yes' : 'no';
 
     // Insert the user data into the users table
     $insertUserQuery = "
-        INSERT INTO users (username, firstName, lastName, email, phoneNo, password)
-        VALUES ('$username', '$firstName', '$lastName', '$email', '$phoneNo', '$password')";
+        INSERT INTO users (company_id, username, firstName, lastName, email, phoneNo, password)
+        VALUES ('$company_id', '$username', '$firstName', '$lastName', '$email', '$phoneNo', '$password')";
 
     if (mysqli_query($conn, $insertUserQuery)) {
         // Get the last inserted user ID
@@ -43,15 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             VALUES ('$user_id', '$company_owner', '$cashier', '$store_keeper', '$delivery_man', '$admin')";
 
         if (mysqli_query($conn, $insertRoleQuery)) {
-            // Update the user's role_id in the users table from the roles table
-            $getRoleIdQuery = "SELECT role_id FROM roles WHERE user_id = '$user_id' LIMIT 1";
-            $roleResult = mysqli_query($conn, $getRoleIdQuery);
-            $roleRow = mysqli_fetch_assoc($roleResult);
-            $role_id = $roleRow['role_id'];
-
-            $updateUserRoleQuery = "UPDATE users SET role_id = '$role_id' WHERE user_id = '$user_id'";
-            mysqli_query($conn, $updateUserRoleQuery);
-
             $feedback = "User created successfully!";
             $feedback_class = "success";
         } else {
@@ -64,29 +57,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-
-// Get company ID of the logged-in company owner
-$user_id = $_SESSION['user_id'];
-$companyQuery = "SELECT company_id FROM users WHERE user_id = '$user_id' LIMIT 1";
-$companyResult = mysqli_query($conn, $companyQuery);
-$companyRow = mysqli_fetch_assoc($companyResult);
-$company_id = $companyRow['company_id'];
-
 // Fetch users associated with the logged-in owner's company
+$company_id = $_SESSION['company_id'];
 $usersQuery = "
     SELECT u.username, CONCAT(u.firstName, ' ', u.lastName) AS fullname, u.email, u.phoneNo,
            CASE
                WHEN r.company_owner = 'yes' THEN 'owner'
+               WHEN r.admin = 'yes' THEN 'admin'
                WHEN r.cashier = 'yes' THEN 'cashier'
                WHEN r.store_keeper = 'yes' THEN 'storekeeper'
                WHEN r.delivery_man = 'yes' THEN 'deliveryman'
                ELSE 'unknown'
            END AS role
     FROM users u
-    JOIN roles r ON u.role_id = r.role_id
+    JOIN roles r ON u.user_id = r.user_id
     WHERE u.company_id = '$company_id'";
 $usersResult = mysqli_query($conn, $usersQuery);
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
@@ -209,6 +197,26 @@ $usersResult = mysqli_query($conn, $usersQuery);
             feedback.style.display = 'none';
         }, 3000);
     }
+
+
+    // JavaScript to limit role selection to a single checkbox
+    document.addEventListener("DOMContentLoaded", function() {
+        const roleCheckboxes = document.querySelectorAll('.role-checkboxes input[type="checkbox"]');
+
+        roleCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                if (this.checked) {
+                    // Uncheck other checkboxes
+                    roleCheckboxes.forEach(box => {
+                        if (box !== this) {
+                            box.checked = false;
+                        }
+                    });
+                }
+            });
+        });
+    });
+
 </script>
 
 </body>

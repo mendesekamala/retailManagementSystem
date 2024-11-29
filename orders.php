@@ -4,15 +4,24 @@ session_start();
 // Connect to the database
 include('db_connection.php');
 
+// Check if the user is logged in and the session has the required data
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['company_id'])) {
+    echo "User not logged in or session data is missing.";
+    exit(); // Exit if no session data
+}
+
 // Handle date filtering
 $whereClause = "";
 if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
     $from_date = $_POST['from_date'];
     $to_date = $_POST['to_date'];
-    $whereClause = "WHERE time BETWEEN '$from_date' AND '$to_date'";
+    $whereClause = "WHERE time BETWEEN '$from_date' AND '$to_date' AND company_id = {$_SESSION['company_id']}";
+} else {
+    // Filter orders based on the company_id from the session if no date filter is applied
+    $whereClause = "WHERE company_id = {$_SESSION['company_id']}";
 }
 
-// Fetch order status counts
+// Fetch order status counts based on the company_id of the logged-in user
 $queryStatusCounts = "
     SELECT status, COUNT(*) AS count 
     FROM orders 
@@ -36,7 +45,7 @@ while ($row = mysqli_fetch_assoc($resultStatusCounts)) {
     $orderCounts[$row['status']] = $row['count'];
 }
 
-// Fetch orders based on filter
+// Fetch orders based on filter and company_id
 $queryOrders = "SELECT * FROM orders $whereClause";
 $resultOrders = mysqli_query($conn, $queryOrders);
 
@@ -160,5 +169,3 @@ function determineOrderStatus($orderId, $conn) {
     </div>
 </body>
 </html>
-
-

@@ -14,10 +14,10 @@ if (!isset($_SESSION['user_id'])) {
 $userId = $_SESSION['user_id'];
 
 // Fetch user information
-$userQuery = "SELECT u.*, c.company_name, r.company_owner, r.cashier, r.store_keeper, r.delivery_man
+$userQuery = "SELECT u.*, c.company_name, r.company_owner, r.cashier, r.store_keeper, r.delivery_man, r.admin
               FROM users u
               LEFT JOIN company c ON u.company_id = c.company_id
-              LEFT JOIN roles r ON u.role_id = r.role_id
+              LEFT JOIN roles r ON u.user_id = r.user_id
               WHERE u.user_id = ?";
 $stmt = $conn->prepare($userQuery);
 $stmt->bind_param("i", $userId);
@@ -42,6 +42,8 @@ if ($userResult->num_rows > 0) {
         $role = 'Store Keeper';
     } elseif ($user['delivery_man'] === 'yes') {
         $role = 'Delivery Man';
+    }elseif ($user['admin'] === 'yes') {
+        $role = 'admin';
     }
 } else {
     echo "User not found.";

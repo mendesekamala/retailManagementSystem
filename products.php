@@ -1,31 +1,38 @@
 <?php
-    session_start();
-    include 'db_connection.php';
+session_start();
+include 'db_connection.php';
 
-    // Fetch products from database
-    $query = "SELECT * FROM products";
-    $result = mysqli_query($conn, $query);
+// Ensure the user is logged in by checking if `company_id` is in session
+if (!isset($_SESSION['company_id'])) {
+    header("Location: login.php");
+    exit();
+}
 
+$companyId = $_SESSION['company_id'];  // Get company ID from session
 
-    // Queries for the tiles
-    $underStockQuery = "SELECT COUNT(*) AS under_stock_reminders FROM products WHERE quantity < under_stock_reminder";
-    $zeroQuantityQuery = "SELECT COUNT(*) AS zero_quantity_products FROM products WHERE quantity = 0";
-    $leastSoldQuery = "SELECT COUNT(DISTINCT name) AS least_sold_products FROM order_items GROUP BY name HAVING SUM(quantity) < 5";
-    $destroyedProductsQuery = "SELECT COUNT(*) AS most_destroyed_products FROM quantity_destroyed WHERE quantity_destroyed > 0 ";
+// Fetch products from database for the logged-in user's company
+$query = "SELECT * FROM products WHERE company_id = $companyId";
+$result = mysqli_query($conn, $query);
 
-    // Execute tile queries
-    $underStockResult = $conn->query($underStockQuery)->fetch_assoc()['under_stock_reminders'];
-    $zeroQuantityResult = $conn->query($zeroQuantityQuery)->fetch_assoc()['zero_quantity_products'];
-    $leastSoldResult = $conn->query($leastSoldQuery)->num_rows;
-    $destroyedProductsResult = $conn->query($destroyedProductsQuery)->fetch_assoc()['most_destroyed_products'];
+// Queries for the tiles, now filtering by `company_id`
+$underStockQuery = "SELECT COUNT(*) AS under_stock_reminders FROM products WHERE company_id = $companyId AND quantity < under_stock_reminder";
+$zeroQuantityQuery = "SELECT COUNT(*) AS zero_quantity_products FROM products WHERE company_id = $companyId AND quantity = 0";
+$leastSoldQuery = "SELECT COUNT(DISTINCT name) AS least_sold_products FROM order_items WHERE company_id = $companyId GROUP BY name HAVING SUM(quantity) < 5";
+$destroyedProductsQuery = "SELECT COUNT(*) AS most_destroyed_products FROM quantity_destroyed WHERE company_id = $companyId AND quantity_destroyed > 0";
 
-    // Queries for the lists
-    $mostSoldHighQuantityQuery = "SELECT name, SUM(quantity) AS total_quantity_sold FROM order_items GROUP BY name ORDER BY total_quantity_sold DESC LIMIT 3";
-    $mostSoldOrdersQuery = "SELECT name, COUNT(order_id) AS order_count FROM order_items GROUP BY name ORDER BY order_count DESC LIMIT 3";
+// Execute tile queries
+$underStockResult = $conn->query($underStockQuery)->fetch_assoc()['under_stock_reminders'];
+$zeroQuantityResult = $conn->query($zeroQuantityQuery)->fetch_assoc()['zero_quantity_products'];
+$leastSoldResult = $conn->query($leastSoldQuery)->num_rows;
+$destroyedProductsResult = $conn->query($destroyedProductsQuery)->fetch_assoc()['most_destroyed_products'];
 
-    // Execute list queries
-    $mostSoldHighQuantityResult = $conn->query($mostSoldHighQuantityQuery);
-    $mostSoldOrdersResult = $conn->query($mostSoldOrdersQuery);
+// Queries for the lists
+$mostSoldHighQuantityQuery = "SELECT name, SUM(quantity) AS total_quantity_sold FROM order_items WHERE company_id = $companyId GROUP BY name ORDER BY total_quantity_sold DESC LIMIT 3";
+$mostSoldOrdersQuery = "SELECT name, COUNT(order_id) AS order_count FROM order_items WHERE company_id = $companyId GROUP BY name ORDER BY order_count DESC LIMIT 3";
+
+// Execute list queries
+$mostSoldHighQuantityResult = $conn->query($mostSoldHighQuantityQuery);
+$mostSoldOrdersResult = $conn->query($mostSoldOrdersQuery);
 
 ?>
 
@@ -107,7 +114,7 @@
                 <th>Buying Price</th>
                 <th>Selling Price</th>
                 <th>In Stock</th>
-                <th>Stock Status</th> <!-- New column for stock status -->
+                <th>Stock Status</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -117,7 +124,7 @@
                     $productId = $row['product_id'];
                     $quantity = $row['quantity'];
                     $quantifiedAs = $row['quantified'];
-                    $underStockReminder = $row['under_stock_reminder']; // Fetch this field from `products`
+                    $underStockReminder = $row['under_stock_reminder']; 
 
                     // Determine stock status
                     $stockStatus = $quantity < $underStockReminder ? 'under-stock' : 'fine';
@@ -131,7 +138,7 @@
                         $unitQuery = "
                             SELECT name, per_single_quantity, available_units
                             FROM units 
-                            WHERE product_id = $productId 
+                            WHERE product_id = $productId AND company_id = $companyId
                             ORDER BY per_single_quantity ASC 
                             LIMIT 1
                         ";
@@ -141,7 +148,7 @@
                         if ($unitRow) {
                             // Calculate available units for just the decimal part
                             $decimalUnits = $decimalQuantity * $unitRow['per_single_quantity'];
-                            $decimalUnits = floor($decimalUnits); // show whole units for the decimal part
+                            $decimalUnits = floor($decimalUnits);
 
                             // Format: whole quantity + quantified_as + decimal units + unit name
                             $quantityDisplay = $wholeQuantity . " " . $quantifiedAs . " and " . $decimalUnits . " " . $unitRow['name'];
@@ -159,7 +166,7 @@
                     <td><?= $row['buying_price']; ?></td>
                     <td><?= $row['selling_price']; ?></td>
                     <td style="text-align:left"> <?= $quantityDisplay; ?></td>
-                    <td> <p class="stock-status <?= $stockStatus; ?>"><?= ucfirst($stockStatus); ?> </p> </td> <!-- Apply the CSS class -->
+                    <td> <p class="stock-status <?= $stockStatus; ?>"><?= ucfirst($stockStatus); ?> </p> </td>
                     <td>
                         <a href="edit-product.php?id=<?= $row['product_id']; ?>" class="action-icon"><i class='bx bx-pencil'></i></a>
                         <a href="delete-product.php?id=<?= $row['product_id']; ?>" class="action-icon"><i class='bx bx-trash'></i></a>
@@ -172,4 +179,3 @@
 </div>
 </body>
 </html>
-

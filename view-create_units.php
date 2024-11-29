@@ -39,7 +39,6 @@ if (isset($_SESSION['error_message'])) {
 }
 ?>
 
-
 <body>
     <div class="main-content">
         <div class="units-container">
@@ -70,10 +69,11 @@ if (isset($_SESSION['error_message'])) {
             </table>
 
             <!-- Add new unit form -->
-            <!-- Add new unit form -->
             <h2>Add New Unit</h2>
             <form action="confirm-new_unit.php" method="POST" class="unit-form">
                 <input type="hidden" name="product_id" value="<?= $product_id; ?>">
+                <input type="hidden" name="created_by" value="<?= $_SESSION['user_id']; ?>"> <!-- Pass created_by -->
+                <input type="hidden" name="company_id" value="<?= $_SESSION['company_id']; ?>"> <!-- Pass company_id -->
                 <input type="text" name="name" placeholder="Unit Name" required>
                 <input type="number" step="0.01" name="per_single_quantity" placeholder="Per Single Quantity" required oninput="calculateAvailableUnits(<?= $product['quantity']; ?>)">
                 <input type="number" step="0.01" name="buying_price" placeholder="Buying Price" required>
@@ -82,7 +82,6 @@ if (isset($_SESSION['error_message'])) {
                 <button type="submit" class="add-unit-button">
                     <i class='bx bx-plus'></i> Add Unit
                 </button>
-
             </form>
 
         </div>

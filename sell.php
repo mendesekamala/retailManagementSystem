@@ -20,7 +20,7 @@
                 <div class="section">
                     <label for="search-product">Search Product</label>
                     <input type="text" id="search-product" name="search-product" placeholder="Search product...">
-                    <div id="suggestions" class="suggestions"></div>
+                    <div id="suggestions"></div>
                 </div>
 
                 <div class="section">
@@ -54,8 +54,6 @@
                     </div>
                 </div>
 
-                
-
                 <div class="row buttons">
                     <button type="button" id="add-product">Add Product</button>
                     <button type="reset">Reset</button>
@@ -64,25 +62,6 @@
         </div>
 
         <div class="right-section">
-
-                <!-- New Section: Customer Details and Payment Method -->
-                <div class="section">
-                <label for="Invoice-details">Invoice details </label>
-                <input type="text" id="customer-name" placeholder="Customer Name" >
-                </div>
-
-                <div class="section">
-                    <select id="payment-method">
-                        <option value="cash">payment method</option>
-                        <option value="cash">Cash</option>
-                        <option value="debt">Debt</option>
-                    </select>
-                </div>
-
-                <div class="section" id="debt-amount-section" style="display: none;">
-                    <label for="debt-amount">Debt Amount</label>
-                    <input type="number" id="debt-amount" placeholder="Enter Debt Amount">
-                </div>
 
             <table id="order-list">
                 <thead>
@@ -105,9 +84,76 @@
                     </tr>
                 </tfoot>
             </table>
-            <button id="complete-order">Complete Order</button>
+            <button onclick="openModal()">Complete Order</button>
         </div>
     </div>
+
+
+
+
+    <!-- Popup Modal -->
+    <div id="popup-modal" class="popup-modal">
+        <div class="popup-content">
+            <!-- Close button -->
+            <i class="bx bx-x close-btn" onclick="closeModal()"></i>
+
+            <!-- Grand Total Section -->
+            <div class="grandtotal-section">
+                <h2>Grand Total: <span class="amount">0.00</span></h2>
+
+                <!-- Customer Name Input -->
+                <div class="customer-name-section">
+                    <label for="customer-name">Customer Name</label>
+                    <input type="text" id="customer-name" placeholder="Enter customer name">
+                    <input type="hidden" id="session-company-id" value="<?php echo htmlspecialchars($_SESSION['company_id'], ENT_QUOTES, 'UTF-8'); ?>">
+                </div>
+
+                <div class="toggle-btn" onclick="toggleSection('full-payment')">
+                    <span>Full Payment</span>
+                    <i class="bx bx-chevron-down"></i>
+                </div>
+                <hr>
+
+                <!-- Full Payment Section -->
+                <div class="full-payment-section" id="full-payment">
+                    <label for="pay-via">Pay Via:</label>
+                    <select id="pay-via"></select>
+                </div>
+
+                <div class="toggle-btn" onclick="toggleSection('double-payment')">
+                    <span>Double Payment</span>
+                    <i class="bx bx-chevron-down"></i>
+                </div>
+                <hr>
+
+                <!-- Double Payment Section -->
+                <div class="double-payment-section" id="double-payment">
+                    <div class="payment-select-container">
+                        <div class="payment-input">
+                            <label for="payment-one">Payment One:</label>
+                            <select id="payment-one"></select>
+                            <input type="number" id="amount-one" placeholder="Amount One">
+                        </div>
+                        <div class="payment-input">
+                            <label for="payment-two">Payment Two:</label>
+                            <select id="payment-two"></select>
+                            <input type="number" id="amount-two" placeholder="Amount Two">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Finish Button -->
+            <div class="finish-container">
+                <button class="finish-btn">Finish</button>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
 
     <script src="scripts/sell.js"></script>
 </body>

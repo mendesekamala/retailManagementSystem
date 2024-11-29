@@ -185,4 +185,11 @@ h1 {
     border-radius: 4px;
     font-weight: bold;
 }
+.role-admin {
+    color: rgb(0, 190, 253);
+    background-color: lightblue;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
 

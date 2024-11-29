@@ -11,12 +11,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $buying_price = floatval($_POST['buying_price']);
     $selling_price = floatval($_POST['selling_price']);
     $available_units = floatval($_POST['available_units']);
+    $created_by = intval($_POST['created_by']);  // Get created_by (user ID from session)
+    $company_id = intval($_POST['company_id']);  // Get company_id (company ID from session)
 
     // Validate inputs
     if ($product_id > 0 && $per_single_quantity > 0 && $buying_price >= 0 && $selling_price >= 0) {
         // Prepare the SQL insert query
-        $query = "INSERT INTO units (product_id, name, per_single_quantity, buying_price, selling_price, available_units) 
-                  VALUES ('$product_id', '$name', '$per_single_quantity', '$buying_price', '$selling_price', '$available_units')";
+        $query = "INSERT INTO units (product_id, name, per_single_quantity, buying_price, selling_price, available_units, created_by, company_id) 
+                  VALUES ('$product_id', '$name', '$per_single_quantity', '$buying_price', '$selling_price', '$available_units', '$created_by', '$company_id')";
 
         // Execute the query and check for success
         if (mysqli_query($conn, $query)) {
