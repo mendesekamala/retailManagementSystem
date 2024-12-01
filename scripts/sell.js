@@ -144,6 +144,7 @@ function addProduct() {
                     sum: unitQuantity * unitSellingPrice,
                     profit: profit,
                     unit_type: 'unit',
+                    unit_id: unitId,
                 };
 
                 orderList.push(productDetails);
@@ -385,6 +386,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const paymentMethod = document.getElementById("pay-via").value;
             const companyId = document.getElementById("session-company-id").value;
     
+                // Validate customer name
+                if (customerName === "") {
+                    alert("Customer name cannot be empty. Please enter a name.");
+                    return; // Stop further execution
+                }
+
             let paymentData = {
                 customer_name: customerName,
                 orderList: orderList,
