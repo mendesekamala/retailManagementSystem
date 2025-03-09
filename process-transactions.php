@@ -26,7 +26,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // If there are sufficient funds, proceed with the transaction
-    $insert_transaction_query = "INSERT INTO transactions (transaction_type, amount, description, date_made, company_id, created_by) VALUES (?, ?, ?, NOW(), ?, ?)";
+    $insert_transaction_query = "
+        INSERT INTO transactions (
+            transaction_type, amount, description, date_made, company_id, created_by, 
+            completed_in, payment_method_one
+        ) 
+        VALUES (?, ?, ?, NOW(), ?, ?, 'full', ?)";
     $stmt = $conn->prepare($insert_transaction_query);
 
     // Check if the statement preparation was successful
@@ -37,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Bind the parameters for the transaction insertion
-    $stmt->bind_param("sdsii", $transaction_type, $amount, $description, $company_id, $created_by);
+    $stmt->bind_param("sdsiis", $transaction_type, $amount, $description, $company_id, $created_by, $payment_method);
 
     if ($stmt->execute()) {
         // Calculate the new balance based on the transaction type
@@ -56,10 +61,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt_update->execute();
 
         // Return success response with the updated balance
-        echo json_encode(['success' => true, 'new_balance' => number_format($new_balance, 2)]);
+        echo json_encode(['success' => true, 'new_balance' => $new_balance]);
     } else {
         // Return error if transaction insertion failed
         echo json_encode(['success' => false, 'message' => "Error inserting the transaction. Please try again."]);
     }
+
 }
 ?>

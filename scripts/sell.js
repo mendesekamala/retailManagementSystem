@@ -182,13 +182,13 @@ function updateOrderList() {
                 <td>${item.name}</td>
                 <td>${item.quantity}</td>
                 <td>@ ${item.price}</td>
-                <td>${item.sum.toFixed(2)}</td>
+                <td>${item.sum.toFixed(0)}</td>
             </tr>
         `;
         orderTableBody.innerHTML += row;
     });
 
-    document.getElementById('total-sum').innerText = totalAmount.toFixed(2);
+    document.getElementById('total-sum').innerText = totalAmount.toFixed(0);
 }
 
 function removeItem(index) {
@@ -208,247 +208,75 @@ function resetOrderForm() {
     document.getElementById('unit-buying-price').value = '';
     document.getElementById('unit-selling-price').value = '';
     document.getElementById('unit-relation').value = '';
+    document.getElementById('customer-name').value = '';
 }
 
 
 
 
 document.addEventListener("DOMContentLoaded", function () {
-    // Fetch payment methods when modal opens
-    function fetchPaymentMethods() {
-        // Get company_id from session (embedded securely via PHP)
-        const companyId = document.getElementById("session-company-id").value;
-        console.log("Company ID passed to AJAX:", companyId);
 
-        if (!companyId) {
-            console.error("Company ID not found in session.");
-            return;
-        }
 
-        // Make an AJAX request to fetch payment methods
-        fetch("fetch_payment_methods.php", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ company_id: companyId }) // Pass company_id in the request body
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                updatePaymentSelects(data.methods); // Update select options with methods
-                openFullPaymentSection(); // Open the full payment section by default
-            } else {
-                console.error("Error fetching payment methods:", data.error);
-            }
-        })
-        .catch(error => console.error("AJAX error:", error));
-    }
+    // Get the toggle button and the section
+    const switchUnitsBtn = document.getElementById('switch-units');
+    const unitsSection = document.getElementById('units-section');
+    const addButUnit = document.getElementById('add-but-unit');
+    const addButWhole = document.getElementById('add-but-whole');
 
-    // Update the payment method selects with the fetched options
-    function updatePaymentSelects(methods) {
-        const selects = document.querySelectorAll("#pay-via, #payment-one, #payment-two");
+    // Ensure the units section is hidden initially
+    unitsSection.style.display = 'none';
+    // addButUnit.style.display = 'none';
 
-        selects.forEach(select => {
-            select.innerHTML = ""; // Clear existing options
-            methods.forEach(method => {
-                const option = document.createElement("option");
-                option.value = method.value; // Assuming methods contain an object with 'value' and 'label'
-                option.textContent = method.label;
-                select.appendChild(option);
-            });
-        });
-    }
-
-    // Open the modal
-    window.openModal = function () {
-
-            if (orderList.length === 0) {
-                alert('No items in the order list');
-                return;
-            }
-
-        const modal = document.getElementById("popup-modal");
-        const suggestions = document.getElementById("suggestions"); // Get the suggestions div
-
-        modal.style.display = "flex";
-        suggestions.style.display = "none";  // This hides the suggestions div
-
-        // Fetch payment methods
-        fetchPaymentMethods();
-
-        // Update the Grand Total in the modal from the total-sum in the order list
-        const totalSum = document.getElementById("total-sum").textContent;
-        const grandTotalElement = modal.querySelector(".grandtotal-section .amount");
-        grandTotalElement.textContent = totalSum;  // Update Grand Total with the value from the table
-        
-        // Clear the "Double Payment" section inputs when opening the modal
-        clearInputsAndSelects("double-payment"); // Ensure the double payment inputs are cleared
-    };
-
-    // Close the modal
-    window.closeModal = function () {
-        const modal = document.getElementById("popup-modal");
-        modal.style.display = "none";
-    };
-
-    // Open the Full Payment Section by default after fetching data
-    function openFullPaymentSection() {
-        const fullPaymentSection = document.getElementById("full-payment");
-        if (fullPaymentSection) {
-            fullPaymentSection.style.display = "block";
-            fullPaymentSection.style.opacity = 1;
-            fullPaymentSection.style.maxHeight = "500px"; // Set a max-height for the slide animation
-            clearInputsAndSelects('double-payment'); // Clear inputs in the full payment section
-        }
-    }
-
-    // Function to clear inputs and selects in a section
-    function clearInputsAndSelects(sectionId) {
-        const section = document.getElementById(sectionId);
-        
-        // Clear text inputs
-        const inputs = section.querySelectorAll('input[type="text"], input[type="number"]');
-        inputs.forEach(input => input.value = '');
-
-        // Reset select options to null or default
-        const selects = section.querySelectorAll('select');
-        selects.forEach(select => select.value = '');
-    }
-
-    // Section toggle functionality to close sections when one is opened
-    window.toggleSection = function (sectionId) {
-        const section = document.getElementById(sectionId);
-        const arrow = section.previousElementSibling.querySelector("i");
-
-        // Close any open sections that are not the one being clicked
-        const openSections = document.querySelectorAll('.full-payment-section, .double-payment-section');
-        openSections.forEach(openSection => {
-            if (openSection !== section) {
-                // Close the section
-                closeSection(openSection);
-            }
-        });
-
-        if (section.style.display === "none" || section.style.display === "") {
-            // Open the clicked section
-            section.style.display = "block";
-            setTimeout(() => {
-                section.style.opacity = 1;
-                section.style.maxHeight = "500px"; // Animation
-            }, 10);
-            arrow.classList.remove("bx-chevron-down");
-            arrow.classList.add("bx-chevron-up");
+    // Add click event listener to the toggle button
+    switchUnitsBtn.addEventListener('click', function () {
+        // Toggle the visibility of the units section
+        if (unitsSection.style.display === 'none') {
+            unitsSection.style.display = 'block';
+            // addButUnit.style.display = 'flex';
+            // addButWhole.style.display = 'none';
+            
         } else {
-            // Close the clicked section
-            closeSection(section);
-            arrow.classList.remove("bx-chevron-up");
-            arrow.classList.add("bx-chevron-down");
-        }
-    };
-
-    // Close a section and clear its inputs/selects
-    function closeSection(section) {
-        section.style.opacity = 0;
-        section.style.maxHeight = "0"; // Animation
-        setTimeout(() => {
-            section.style.display = "none";
-            clearInputsAndSelects(section.id); // Clear inputs in the closed section
-        }, 300); // Wait for animation to finish before hiding
-    }
-
-    // Disable options in Payment Two select based on Payment One selection
-    document.getElementById("payment-one").addEventListener("change", function () {
-        const paymentOneValue = this.value;
-        const paymentTwoSelect = document.getElementById("payment-two");
-
-        for (let option of paymentTwoSelect.options) {
-            if (option.value === paymentOneValue) {
-                option.disabled = true;
-            } else {
-                option.disabled = false;
-            }
+            unitsSection.style.display = 'none';
+            // addButUnit.style.display = 'none';
+            // addButWhole.style.display = 'flex';
         }
     });
+        
+});
 
-    // Close modal when clicking outside of it
-    window.onclick = function(event) {
-        if (event.target === document.getElementById("popup-modal")) {
-            closeModal();
-        }
-    };
 
-        // Finish button event listener
-        document.querySelector(".finish-btn").addEventListener("click", function() {
-            // Fetch customer name, total, and payment method(s)
-            const customerName = document.getElementById("customer-name").value;
-            const total = parseFloat(document.getElementById("total-sum").textContent);
-            const paymentMethod = document.getElementById("pay-via").value;
-            const companyId = document.getElementById("session-company-id").value;
-    
-                // Validate customer name
-                if (customerName === "") {
-                    alert("Customer name cannot be empty. Please enter a name.");
-                    return; // Stop further execution
-                }
+// // Finish button event listener
+        // document.querySelector(".finish-btn").addEventListener("click", function () {
+            
+        //     // Base payment data
+            // let paymentData = {
+            //     orderList: orderList, // Assumes orderList and totalProfit are defined elsewhere
+            // };
 
-            let paymentData = {
-                customer_name: customerName,
-                orderList: orderList,
-                total: total,
-                total_profit: totalProfit,
-                company_id: companyId
-            };
-    
-            // Check if it's a double payment
-            const isDoublePayment = document.getElementById("payment-one").value && document.getElementById("payment-two").value;
-    
-            if (isDoublePayment) {
-                const paymentOneMethod = document.getElementById("payment-one").value;
-                const paymentOneAmount = parseFloat(document.getElementById("amount-one").value);
-                const paymentTwoMethod = document.getElementById("payment-two").value;
-                const paymentTwoAmount = parseFloat(document.getElementById("amount-two").value);
-    
-                paymentData.payment_method = 'double';  // Set payment method as double
-                paymentData.payment_one = {
-                    method: paymentOneMethod,
-                    amount: paymentOneAmount
-                };
-                paymentData.payment_two = {
-                    method: paymentTwoMethod,
-                    amount: paymentTwoAmount
-                };
-            } else {
-                paymentData.payment_method = paymentMethod;
-                paymentData.debt_amount = total;  // If full payment, debt amount is the total order amount
-            }
-    
-            // Send data to complete-order.php via AJAX
-            fetch("complete-order.php", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(paymentData)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === "success") {
-                    alert("Order completed successfully!");
-                    closeModal(); // Close modal after successful order completion
-
-                    window.location.reload();  // Reload the page (sell.php) after successful order completion
-                } else {
-                    alert("Error completing order: " + data.message);
-                }
-            })
-            .catch(error => {
-                console.error("Error:", error);
-                alert("An error occurred while completing the order.");
-            });
-        });
-
-    });
+           
+        //     // Send data to complete-order.php via AJAX
+        //     fetch("complete-order.php", {
+        //         method: "POST",
+        //         headers: {
+        //             "Content-Type": "application/json",
+        //         },
+        //         body: JSON.stringify(paymentData),
+        //     })
+        //         .then((response) => response.json())
+        //         .then((data) => {
+        //             if (data.status === "success") {
+        //                 alert("Order completed successfully!");
+        //                 closeModal(); // Close modal after successful order completion
+        //                 window.location.reload(); // Reload the page
+        //             } else {
+        //                 alert("Error completing order: " + data.message);
+        //             }
+        //         })
+        //         .catch((error) => {
+        //             console.error("Error:", error);
+        //             alert("An error occurred while completing the order.");
+        //         });
+        // });
 
 
 

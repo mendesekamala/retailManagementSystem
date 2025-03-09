@@ -12,6 +12,7 @@
 </head>
 
 <?php include('sidebar.php'); ?>
+<?php include('payment-modal_sales.php'); ?>
 
 <body>
     <div class="sell-container">
@@ -37,9 +38,19 @@
                     </div>
                 </div>
 
-                <div class="section">
-                    <p>Sell in Units</p>
+                
+
+                
+                <div class="switch-units-div">
+                    <div class="toggle-btn" id="switch-units">
+                        <span>Sell in Units</span>
+                        <i class="bx bx-chevron-down"></i>
+                    </div>
                     <hr>
+                </div>
+
+
+                <div class="section" id="units-section">
                     <div class="row">
                         <select id="unit-sell-as">
                             <option value="" disabled selected>Select Unit</option>
@@ -58,10 +69,18 @@
                     <button type="button" id="add-product">Add Product</button>
                     <button type="reset">Reset</button>
                 </div>
+
+                
             </form>
         </div>
 
         <div class="right-section">
+
+            <!-- New Section: Customer Details and Payment Method -->
+            <div class="section">
+                <label for="Invoice-details">Invoice details </label>
+                <input type="text" id="customer-name" placeholder="Customer Name" >
+            </div>
 
             <table id="order-list">
                 <thead>
@@ -80,81 +99,46 @@
                 <tfoot>
                     <tr>
                         <td colspan="5">TOTAL</td>
-                        <td id="total-sum">0.00</td>
+                        <td id="total-sum">0</td>
                     </tr>
                 </tfoot>
             </table>
-            <button onclick="openModal()">Complete Order</button>
+            <button onclick="openPaymentModal()">Complete Order</button>
         </div>
     </div>
-
-
-
-
-    <!-- Popup Modal -->
-    <div id="popup-modal" class="popup-modal">
-        <div class="popup-content">
-            <!-- Close button -->
-            <i class="bx bx-x close-btn" onclick="closeModal()"></i>
-
-            <!-- Grand Total Section -->
-            <div class="grandtotal-section">
-                <h2>Grand Total: <span class="amount">0.00</span></h2>
-
-                <!-- Customer Name Input -->
-                <div class="customer-name-section">
-                    <label for="customer-name">Customer Name</label>
-                    <input type="text" id="customer-name" placeholder="Enter customer name">
-                    <input type="hidden" id="session-company-id" value="<?php echo htmlspecialchars($_SESSION['company_id'], ENT_QUOTES, 'UTF-8'); ?>">
-                </div>
-
-                <div class="toggle-btn" onclick="toggleSection('full-payment')">
-                    <span>Full Payment</span>
-                    <i class="bx bx-chevron-down"></i>
-                </div>
-                <hr>
-
-                <!-- Full Payment Section -->
-                <div class="full-payment-section" id="full-payment">
-                    <label for="pay-via">Pay Via:</label>
-                    <select id="pay-via"></select>
-                </div>
-
-                <div class="toggle-btn" onclick="toggleSection('double-payment')">
-                    <span>Double Payment</span>
-                    <i class="bx bx-chevron-down"></i>
-                </div>
-                <hr>
-
-                <!-- Double Payment Section -->
-                <div class="double-payment-section" id="double-payment">
-                    <div class="payment-select-container">
-                        <div class="payment-input">
-                            <label for="payment-one">Payment One:</label>
-                            <select id="payment-one"></select>
-                            <input type="number" id="amount-one" placeholder="Amount One">
-                        </div>
-                        <div class="payment-input">
-                            <label for="payment-two">Payment Two:</label>
-                            <select id="payment-two"></select>
-                            <input type="number" id="amount-two" placeholder="Amount Two">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Finish Button -->
-            <div class="finish-container">
-                <button class="finish-btn">Finish</button>
-            </div>
-        </div>
-    </div>
-
-
 
 
 
 
     <script src="scripts/sell.js"></script>
+    <script src="scripts/payment_sales.js"></script>
+    <script>
+    // Open the modal
+    function openPaymentModal() {
+        if (orderList.length === 0) {
+            alert('No items in the order list');
+            return;
+        }
+
+        const suggestions = document.getElementById("suggestions"); // Get the suggestions div
+        suggestions.style.display = "none";  // This hides the suggestions div
+
+        let grandTotal = document.getElementById("total-sum").textContent;
+        const total = parseFloat(document.getElementById("total-sum").textContent);
+        const customerName = document.getElementById('customer-name').value;
+
+
+        let salesData = {
+            orderList: orderList, 
+            customer_name: customerName,
+            total: total,
+            total_profit: totalProfit,
+        };
+        
+
+        localStorage.setItem('salesData', JSON.stringify(salesData));
+        openModal(grandTotal);
+    }
+    </script>
 </body>
 </html>

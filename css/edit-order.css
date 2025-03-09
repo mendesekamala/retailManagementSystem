@@ -1,169 +1,271 @@
 body {
     font-family: Arial, sans-serif;
-    display: flex;
-    flex-direction: row;
-    margin: 0;
     background-color: rgb(247, 247, 247);
-}
-
-.content {
-    flex: 1;
-    padding: 20px;
-    margin-left: 255px;
-}
-
-.main-container {
     display: flex;
-    height: 70vh;
-    margin: auto 50px;
-}
-
-.left-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
     justify-content: center;
-    background-color: #fff;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
     padding: 20px;
 }
 
-.status-icon {
-    font-size: 120px;
-    
-}
-
-.icon-cancelled { color: red; }
-.icon-created { color: blue; }
-.icon-sent { color: orange; }
-.icon-delivered { color: green; }
-
-/* New CSS for Status Text */
-.status-text {
-    font-size: 18px;
-    font-weight: bold;
-    text-align: center;
-}
-
-.text-cancelled { color: red; }
-.text-created { color: blue; }
-.text-sent { color: orange; }
-.text-delivered { color: green; }
-
-
-label[for="orderStatus"],
-label[for="debtAmount"] {
-    display: inline-block;
-    margin-top: 20px;
-    text-align: center;
-    width: 100%;
-    font-size: 14px;
-    font-weight: bolder;
-}
-
-#orderStatus{
-    width: 140px; /* Set width similar to icon size */
-    margin: 0 auto; /* Center align */
-    padding: 8px;
-    font-size: 16px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-align: center; /* Center align text */
-    margin-top:15px;
-}
-#debtAmount {
-    width: 140px; /* Set width similar to icon size */
-    margin: 0 auto; /* Center align */
-    padding: 8px;
-    font-size: 18px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    text-align: center; /* Center align text */
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
-    background-color: rgb(246, 246, 246);
-    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
-}
-
-
-
-
-/* Receipt-like box */
 .receipt-container {
     width: 450px;
     background-color: #fff;
     padding: 20px;
-    margin: 0 auto;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     border-radius: 5px;
+    text-align: center;
 }
 
-/* Order items styling */
-.order-item {
+.order-status {
     display: flex;
+    justify-content: center;
     align-items: center;
-    margin-bottom: 10px;
-    font-size: 14px;
+    margin-bottom: 20px;
 }
 
-.order-item i {
-    color: red;
-    cursor: pointer;
+.status-icon {
+    font-size: 24px;
     margin-right: 10px;
 }
 
-/* Order details alignment */
-.order-item .sn { min-width: 20px; text-align: right;  }
-.order-item .name { flex: 1; margin-left: 5px; white-space: nowrap; /* Prevents wrapping */}
-.order-item .quantity {
-    align-items: left;
+.status-text {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.order-items {
+    margin-top: 20px;
+}
+
+.items-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+    font-size: 14px;
+}
+
+.items-table th, .items-table td {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+.quantity-btn {
+    background-color: #ddd;
+    border: none;
+    padding: 5px 8px;
     cursor: pointer;
+    border-radius: 3px;
+    font-size: 14px;
 }
 
-.quantity i {
-    color: #007bff;
-    
+.quantity-btn:hover {
+    background-color: #ccc;
+}
+
+.remove-btn {
+    background-color: red;
+    color: white;
+    border: none;
+    padding: 5px 10px;
     cursor: pointer;
-    visibility: hidden;
+    border-radius: 3px;
+    font-size: 14px;
 }
 
-.quantity:hover i {
-    visibility: visible;
+.remove-btn:hover {
+    background-color: darkred;
 }
 
-.order-item .price{
-    text-align: left;
-    margin-left: auto;
-    min-width: 80px;
-}
-
-.order-item .total {
-    text-align: right;
-    margin-left: auto;
-    min-width: 80px;
-}
-
-/* Total Price Styling */
 .total-price {
     font-size: 16px;
     font-weight: bold;
     text-align: right;
     margin-top: 15px;
 }
-.finish-editing-button {
-    display: block;
-    margin-top: 20px;
+
+.finish-btn {
+    margin-top: 15px;
     padding: 10px 15px;
-    background-color: #28a745;
+    font-size: 14px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.finish-btn:hover {
+    background-color: #0056b3;
+}
+
+/* Status Colors */
+.status-icon.blue {
+    color: blue;
+}
+
+.status-icon.orange {
+    color: orange;
+}
+
+.status-icon.green {
+    color: green;
+}
+
+.status-icon.red {
+    color: red;
+}
+
+
+/* added */
+
+/* General Styles */
+.popup-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 30%;
+    max-width: 600px;
+    animation: slideIn 0.3s ease;
+    border: 3px solid rgb(47, 47, 79);
+}
+
+  /* Close Button */
+  .close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+  }
+  
+  .close-btn:hover,
+  .close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+.grandtotal-section h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.amount {
+    font-weight: bold;
+}
+
+.customer-name-section {
+    margin-top: 20px;
+}
+
+.customer-name-section label {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+.customer-name-section input {
+    width: 93%;
+    padding: 8px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+}
+
+.toggle-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    margin-top: 50px;
+}
+
+.popup-content hr{
+    background-color: rgb(47, 47, 79);
+    height: 2px;
+}
+
+.toggle-btn i {
+    font-size: 20px;
+    border: 1px solid black;
+    border-radius: 100%;
+}
+
+/* Full and Double Payment sections - initially hidden, will be animated */
+#full-payment, #double-payment {
+    display: none;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.3s ease, max-height 0.3s ease;
+}
+
+.full-payment-section,
+.double-payment-section {
+    margin-top: 20px;
+}
+
+.full-payment-section select,
+.full-payment-section input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.payment-select-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.payment-input {
+    width: 48%;
+}
+
+.payment-input select {
+    width: 100%;
+    padding: 8px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.payment-input input {
+    width: 91%;
+    padding: 8px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.finish-container {
+    margin-top: 20px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.finish-btn {
+    padding: 10px 20px;
+    background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 5px;
     cursor: pointer;
-    text-align: center;
 }
 
-.finish-editing-button:hover {
-    background-color: #218838;
+.finish-btn:hover {
+    background-color: #45a049;
 }
+

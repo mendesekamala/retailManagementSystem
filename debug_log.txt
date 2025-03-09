@@ -1,0 +1,64 @@
+Data received: Array
+(
+    [orderList] => Array
+        (
+            [0] => Array
+                (
+                    [product_id] => 1
+                    [name] => 25kgs sembe
+                    [quantity] => 2
+                    [price] => 40000
+                    [buying_price] => 35000
+                    [sum] => 80000
+                    [profit] => 10000
+                    [unit_type] => whole
+                )
+
+        )
+
+    [customer_name] => kamala
+    [total] => 80000
+    [total_profit] => 10000
+    [paymentMethods] => Array
+        (
+            [0] => Array
+                (
+                    [method] => Cash
+                    [amount] => 80000
+                )
+
+        )
+
+)
+Data received: Array
+(
+    [orderList] => Array
+        (
+            [0] => Array
+                (
+                    [product_id] => 1
+                    [name] => 25kgs sembe
+                    [quantity] => 1
+                    [price] => 40000
+                    [buying_price] => 35000
+                    [sum] => 40000
+                    [profit] => 5000
+                    [unit_type] => whole
+                )
+
+        )
+
+    [customer_name] => kama
+    [total] => 40000
+    [total_profit] => 5000
+    [paymentMethods] => Array
+        (
+            [0] => Array
+                (
+                    [method] => Cash
+                    [amount] => 40000
+                )
+
+        )
+
+)
