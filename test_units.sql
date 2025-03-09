@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2024 at 03:58 PM
+-- Generation Time: Mar 09, 2025 at 08:47 AM
 -- Server version: 10.4.22-MariaDB
 -- PHP Version: 7.3.33
 
@@ -45,6 +45,45 @@ INSERT INTO `company` (`company_id`, `company_name`, `owner_name`, `date_created
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `methods_used`
+--
+
+CREATE TABLE `methods_used` (
+  `meth_id` int(11) NOT NULL,
+  `transaction_id` int(11) NOT NULL,
+  `payment_method` varchar(50) NOT NULL,
+  `partial_amount` decimal(10,2) NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Dumping data for table `methods_used`
+--
+
+INSERT INTO `methods_used` (`meth_id`, `transaction_id`, `payment_method`, `partial_amount`, `total_amount`) VALUES
+(1, 1, 'cash', '50.00', '100.00'),
+(2, 55, 'Cash', '105000.00', '105000.00'),
+(3, 56, 'Cash', '100000.00', '105000.00'),
+(4, 56, 'Debt', '5000.00', '105000.00'),
+(5, 57, 'Cash', '105000.00', '105000.00'),
+(6, 58, 'Cash', '105000.00', '105000.00'),
+(7, 59, 'Tigo pesa', '70000.00', '70000.00'),
+(8, 65, 'Cash', '80000.00', '80000.00'),
+(9, 66, 'Cash', '80000.00', '80000.00'),
+(10, 67, 'NMB', '40000.00', '40000.00'),
+(11, 68, 'Cash', '80000.00', '80000.00'),
+(12, 69, 'NMB', '80000.00', '80000.00'),
+(13, 71, 'Cash', '80000.00', '80000.00'),
+(14, 72, 'Cash', '40000.00', '40000.00'),
+(15, 73, 'Cash', '40000.00', '40000.00'),
+(16, 74, 'Cash', '40000.00', '40000.00'),
+(17, 75, 'Tigo pesa', '32000.00', '32000.00'),
+(18, 79, 'Tigo pesa', '40000.00', '40000.00'),
+(19, 82, 'NMB', '35000.00', '35000.00');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `money`
 --
 
@@ -70,8 +109,8 @@ CREATE TABLE `money` (
 --
 
 INSERT INTO `money` (`money_id`, `company_id`, `money`, `cash`, `NMB`, `CRDB`, `NBC`, `mpesa`, `tigo_pesa`, `airtel_money`, `halo_pesa`, `azam_pesa`, `debt`, `creditors`) VALUES
-(1, 1, '0.00', '305000.00', '0.00', '0.00', '0.00', '400.00', '0.00', '0.00', '0.00', '0.00', '2000.00', '0.00'),
-(2, 2, '0.00', '-4859500.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00');
+(1, 1, '0.00', '265000.00', '26200.00', '0.00', '0.00', '300000.00', '270000.00', '0.00', '0.00', '0.00', '26000.00', '0.00'),
+(2, 2, '0.00', '400000.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00', '0.00');
 
 -- --------------------------------------------------------
 
@@ -87,8 +126,6 @@ CREATE TABLE `orders` (
   `time` datetime DEFAULT current_timestamp(),
   `status` enum('created','sent','delivered','cancelled') DEFAULT 'created',
   `customer_name` varchar(255) NOT NULL,
-  `payment_method` enum('cash','debt') NOT NULL,
-  `debt_amount` decimal(10,2) DEFAULT 0.00,
   `profit` decimal(10,2) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -96,26 +133,54 @@ CREATE TABLE `orders` (
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `company_id`, `created_by`, `total`, `time`, `status`, `customer_name`, `payment_method`, `debt_amount`, `profit`) VALUES
-(87, 1, 2, '144000.00', '2024-10-30 00:05:48', 'cancelled', 'kitic', 'cash', '0.00', '20000.00'),
-(88, 1, 2, '144000.00', '2024-10-30 00:11:39', 'cancelled', 'mudathir', 'cash', '0.00', '20000.00'),
-(89, 1, 2, '168000.00', '2024-10-30 00:17:27', 'created', 'chama', 'cash', '0.00', '25000.00'),
-(90, 1, 2, '126000.00', '2024-10-30 13:45:00', 'sent', 'jay', 'cash', '0.00', '18750.00'),
-(91, 1, 2, '31000.00', '2024-10-31 10:36:36', 'created', 'messi', 'debt', '20000.00', '3000.00'),
-(92, 1, 2, '198000.00', '2024-10-31 21:07:59', 'delivered', 'kiss', 'cash', '0.00', '26000.00'),
-(93, 1, 2, '83200.00', '2024-10-31 23:02:36', 'created', 'mendes', 'cash', '0.00', '12400.00'),
-(94, 1, 2, '105200.00', '2024-11-04 23:14:14', 'created', 'mimi', 'cash', '0.00', '11400.00'),
-(95, 1, 2, '40000.00', '2024-11-06 22:38:38', 'created', 'lov', 'cash', '0.00', '5000.00'),
-(96, 1, 11, '32000.00', '2024-11-16 10:46:42', 'created', 'mimi', 'cash', '0.00', '5000.00'),
-(97, 2, 14, '90000.00', '2024-11-16 10:56:21', 'created', 'messi', 'cash', '0.00', '27000.00'),
-(100, 1, 2, '40000.00', '2024-11-18 22:13:35', 'created', 'hanama', 'cash', '0.00', '5000.00'),
-(101, 1, 2, '40000.00', '2024-11-21 20:10:29', 'created', 'kaka', '', '40000.00', '5000.00'),
-(102, 1, 2, '72000.00', '2024-11-21 20:51:23', 'created', 'ki aziz', '', '0.00', '10000.00'),
-(103, 1, 2, '95000.00', '2024-11-29 11:04:08', 'created', 'mengelee', 'cash', '95000.00', '11500.00'),
-(104, 1, 2, '40000.00', '2024-11-29 15:15:51', 'created', 'messi', 'cash', '40000.00', '5000.00'),
-(105, 1, 2, '40000.00', '2024-11-29 15:16:32', 'created', 'messi', 'cash', '40000.00', '5000.00'),
-(106, 1, 2, '40000.00', '2024-11-29 15:17:09', 'created', 'messi', 'cash', '40000.00', '5000.00'),
-(107, 1, 2, '40000.00', '2024-11-29 17:55:11', 'created', 'messi', 'cash', '40000.00', '5000.00');
+INSERT INTO `orders` (`order_id`, `company_id`, `created_by`, `total`, `time`, `status`, `customer_name`, `profit`) VALUES
+(87, 1, 2, '144000.00', '2024-10-30 00:05:48', 'cancelled', 'kitic', '20000.00'),
+(88, 1, 2, '144000.00', '2024-10-30 00:11:39', 'cancelled', 'mudathir', '20000.00'),
+(89, 1, 2, '168000.00', '2024-10-30 00:17:27', 'created', 'chama', '25000.00'),
+(90, 1, 2, '126000.00', '2024-10-30 13:45:00', 'sent', 'jay', '18750.00'),
+(91, 1, 2, '31000.00', '2024-10-31 10:36:36', 'created', 'messi', '3000.00'),
+(92, 1, 2, '198000.00', '2024-10-31 21:07:59', 'delivered', 'kiss', '26000.00'),
+(93, 1, 2, '83200.00', '2024-10-31 23:02:36', 'created', 'mendes', '12400.00'),
+(94, 1, 2, '105200.00', '2024-11-04 23:14:14', 'created', 'mimi', '11400.00'),
+(95, 1, 2, '40000.00', '2024-11-06 22:38:38', 'created', 'lov', '5000.00'),
+(96, 1, 11, '32000.00', '2024-11-16 10:46:42', 'created', 'mimi', '5000.00'),
+(97, 2, 14, '90000.00', '2024-11-16 10:56:21', 'created', 'messi', '27000.00'),
+(100, 1, 2, '40000.00', '2024-11-18 22:13:35', 'created', 'hanama', '5000.00'),
+(101, 1, 2, '40000.00', '2024-11-21 20:10:29', 'created', 'kaka', '5000.00'),
+(102, 1, 2, '72000.00', '2024-11-21 20:51:23', 'created', 'ki aziz', '10000.00'),
+(103, 1, 2, '95000.00', '2024-11-29 11:04:08', 'created', 'mengelee', '11500.00'),
+(104, 1, 2, '40000.00', '2024-11-29 15:15:51', 'created', 'messi', '5000.00'),
+(105, 1, 2, '40000.00', '2024-11-29 15:16:32', 'created', 'messi', '5000.00'),
+(106, 1, 2, '40000.00', '2024-11-29 15:17:09', 'created', 'messi', '5000.00'),
+(107, 1, 2, '40000.00', '2024-11-29 17:55:11', 'created', 'messi', '5000.00'),
+(108, 1, 2, '800.00', '2024-11-30 22:29:48', 'created', 'ssi', '100.00'),
+(109, 1, 2, '800.00', '2024-11-30 23:34:30', 'created', 'messi', '100.00'),
+(110, 1, 2, '800.00', '2024-11-30 23:35:34', 'created', 'messi', '100.00'),
+(111, 1, 2, '800.00', '2024-11-30 23:37:20', 'created', 'messi', '100.00'),
+(112, 1, 2, '40000.00', '2024-12-01 08:54:50', 'created', 'sii', '5000.00'),
+(113, 1, 2, '19200.00', '2024-12-01 08:55:11', 'created', 'mende', '2400.00'),
+(114, 1, 2, '19200.00', '2024-12-01 09:36:28', 'created', 'messi', '2400.00'),
+(115, 1, 2, '4800.00', '2024-12-01 09:41:00', 'created', 'ghai', '600.00'),
+(116, 1, 2, '800.00', '2024-12-01 09:47:55', 'created', 'messi', '100.00'),
+(117, 1, 2, '400.00', '2024-12-01 10:23:14', 'created', '', '50.00'),
+(118, 1, 2, '40000.00', '2024-12-11 18:40:02', 'created', 'mendes', '5000.00'),
+(119, 1, 2, '120000.00', '2024-12-11 18:57:10', 'created', 'mendes', '15000.00'),
+(120, 1, 2, '40000.00', '2024-12-11 19:22:08', 'created', 'mende', '5000.00'),
+(121, 1, 2, '40000.00', '2024-12-11 19:28:21', 'created', 'you', '5000.00'),
+(122, 1, 2, '40000.00', '2024-12-24 14:26:47', 'created', 'memo', '5000.00'),
+(123, 1, 2, '40000.00', '2024-12-24 14:29:30', 'created', 'sision', '5000.00'),
+(124, 1, 2, '40000.00', '2024-12-24 14:43:39', 'created', 'siuu', '5000.00'),
+(125, 1, 2, '80000.00', '2025-03-08 10:04:27', 'created', 'kamala', '10000.00'),
+(126, 1, 2, '80000.00', '2025-03-08 10:19:16', 'created', 'mende', '10000.00'),
+(127, 1, 2, '120000.00', '2025-03-08 10:22:56', '', 'kamala', '15000.00'),
+(128, 1, 2, '80000.00', '2025-03-08 10:27:36', 'created', 'kamala', '10000.00'),
+(129, 1, 2, '40000.00', '2025-03-08 10:36:49', 'created', 'kama', '5000.00'),
+(130, 1, 2, '40000.00', '2025-03-08 10:48:50', 'created', 'kamala', '5000.00'),
+(131, 1, 2, '40000.00', '2025-03-08 10:58:18', 'created', 'kamala', '5000.00'),
+(132, 1, 2, '32000.00', '2025-03-08 11:06:24', 'created', 'messi', '5000.00'),
+(133, 1, 2, '40000.00', '2025-03-08 13:19:09', 'created', 'mende', '5000.00'),
+(134, 1, 2, '40000.00', '2025-03-08 13:19:53', 'created', 'mende', '5000.00'),
+(136, 1, 2, '40000.00', '2025-03-09 10:14:22', 'created', 'messi', '5000.00');
 
 -- --------------------------------------------------------
 
@@ -172,7 +237,34 @@ INSERT INTO `order_items` (`item_id`, `order_id`, `product_id`, `created_by`, `c
 (85, 104, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
 (86, 105, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
 (87, 106, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
-(88, 107, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00');
+(88, 107, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(89, 108, 1, 2, 1, '25kgs sembe (half_kg)', NULL, 1, 'created', '700.00', '800.00', '800.00'),
+(90, 109, 1, 2, 1, '25kgs sembe (half_kg)', NULL, 1, 'created', '700.00', '800.00', '800.00'),
+(91, 110, 1, 2, 1, '25kgs sembe (half_kg)', NULL, 1, 'created', '700.00', '800.00', '800.00'),
+(92, 111, 1, 2, 1, '25kgs sembe (half_kg)', NULL, 1, 'created', '700.00', '800.00', '800.00'),
+(93, 112, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(94, 113, 1, 2, 1, '25kgs sembe (kg)', NULL, 12, 'created', '1400.00', '1600.00', '19200.00'),
+(95, 114, 1, 2, 1, '25kgs sembe (kg)', 'kg', 12, 'created', '1400.00', '1600.00', '19200.00'),
+(96, 115, 1, 2, 1, '25kgs sembe (kg)', 'kg', 3, 'created', '1400.00', '1600.00', '4800.00'),
+(97, 116, 1, 2, 1, '25kgs sembe (half_kg)', 'half_kg', 1, 'created', '700.00', '800.00', '800.00'),
+(98, 117, 1, 2, 1, '25kgs sembe (quarter_kg)', 'quarter_kg', 1, 'created', '350.00', '400.00', '400.00'),
+(99, 118, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(100, 119, 1, 2, 1, '25kgs sembe', 'whole', 3, 'created', '35000.00', '40000.00', '120000.00'),
+(101, 120, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(102, 121, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(103, 122, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(104, 123, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(105, 124, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(111, 125, 1, 2, 1, '25kgs sembe', 'whole', 2, 'created', '35000.00', '40000.00', '80000.00'),
+(112, 126, 1, 2, 1, '25kgs sembe', 'whole', 2, 'created', '35000.00', '40000.00', '80000.00'),
+(113, 128, 1, 2, 1, '25kgs sembe', 'whole', 2, 'created', '35000.00', '40000.00', '80000.00'),
+(114, 129, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(115, 130, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(116, 131, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(117, 132, 6, 2, 1, 'santa lucia', 'whole', 1, 'created', '27000.00', '32000.00', '32000.00'),
+(118, 133, 3, 2, 1, 'jamaa', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(119, 134, 3, 2, 1, 'jamaa', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00'),
+(121, 136, 1, 2, 1, '25kgs sembe', 'whole', 1, 'created', '35000.00', '40000.00', '40000.00');
 
 -- --------------------------------------------------------
 
@@ -201,7 +293,7 @@ CREATE TABLE `payment_methods` (
 --
 
 INSERT INTO `payment_methods` (`method_id`, `created_by`, `company_id`, `cash`, `NMB`, `CRDB`, `NBC`, `mpesa`, `airtel_money`, `tigo_pesa`, `halo_pesa`, `azam_pesa`, `debt`) VALUES
-(1, 2, 1, 'yes', 'yes', 'no', 'no', 'yes', 'no', 'no', 'no', 'no', 'yes'),
+(1, 2, 1, 'yes', 'yes', 'no', 'no', 'yes', 'no', 'yes', 'no', 'no', 'yes'),
 (3, 14, 2, 'yes', 'no', 'no', 'no', 'no', 'no', 'no', 'no', 'no', 'yes');
 
 -- --------------------------------------------------------
@@ -227,10 +319,10 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`product_id`, `company_id`, `created_by`, `name`, `quantity`, `quantified`, `under_stock_reminder`, `buying_price`, `selling_price`) VALUES
-(1, 1, 2, '25kgs sembe', '16.00', 'sacks', '15.00', '35000.00', '40000.00'),
-(2, 1, 2, 'ngano', '5.00', 'sack', '15.00', '28000.00', '31000.00'),
-(3, 1, 2, 'jamaa', '11.25', 'catton', '10.00', '35000.00', '40000.00'),
-(6, 1, 2, 'santa lucia', '20.00', 'box', '7.00', '27000.00', '32000.00'),
+(1, 1, 2, '25kgs sembe', '9.00', 'sacks', '15.00', '35000.00', '40000.00'),
+(2, 1, 2, 'ngano', '15.00', 'sack', '15.00', '28000.00', '31000.00'),
+(3, 1, 2, 'jamaa', '10.25', 'catton', '10.00', '35000.00', '40000.00'),
+(6, 1, 2, 'santa lucia', '19.00', 'box', '7.00', '27000.00', '32000.00'),
 (7, 1, 2, 'azam nazi', '25.00', 'box', '7.00', '12000.00', '15000.00'),
 (8, 1, 2, 'mo xtra', '23.00', 'catton', '30.00', '4700.00', '5000.00'),
 (9, 1, 2, '25kgs sukari', '30.00', 'sack', '10.00', '45000.00', '50000.00'),
@@ -292,7 +384,22 @@ INSERT INTO `purchases_items` (`item_id`, `product_id`, `product_name`, `quantit
 (10, 1, '25kgs sembe', 50, '35000.00', '40000.00', '2024-11-29 14:33:06', '1750000.00'),
 (11, 1, '25kgs sembe', 5, '35000.00', '40000.00', '2024-11-29 14:46:46', '175000.00'),
 (12, 1, '25kgs sembe', 10, '35000.00', '40000.00', '2024-11-29 15:17:40', '350000.00'),
-(13, 1, '25kgs sembe', 5, '35000.00', '40000.00', '2024-11-29 15:24:54', '175000.00');
+(13, 1, '25kgs sembe', 5, '35000.00', '40000.00', '2024-11-29 15:24:54', '175000.00'),
+(14, 2, 'ngano', 10, '28000.00', '31000.00', '2024-12-11 17:41:10', '280000.00'),
+(15, 3, 'jamaa', 1, '35000.00', '40000.00', '2024-12-11 17:45:12', '35000.00'),
+(16, 1, '25kgs sembe', 1, '35000.00', '40000.00', '2024-12-11 17:46:06', '35000.00'),
+(17, 1, '25kgs sembe', 1, '35000.00', '40000.00', '2024-12-11 18:03:31', '35000.00'),
+(25, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 03:39:54', '105000.00'),
+(26, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 03:43:20', '105000.00'),
+(28, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 03:56:39', '105000.00'),
+(29, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 04:00:35', '105000.00'),
+(30, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 04:02:39', '105000.00'),
+(31, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 04:17:50', '105000.00'),
+(32, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 04:18:54', '105000.00'),
+(33, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 21:30:53', '105000.00'),
+(34, 1, NULL, 3, '35000.00', '40000.00', '2025-03-07 21:54:43', '105000.00'),
+(35, 1, NULL, 2, '35000.00', '40000.00', '2025-03-07 21:57:22', '70000.00'),
+(43, 1, NULL, 1, '35000.00', '40000.00', '2025-03-09 10:25:37', '35000.00');
 
 -- --------------------------------------------------------
 
@@ -353,45 +460,85 @@ INSERT INTO `roles` (`role_id`, `user_id`, `company_owner`, `cashier`, `store_ke
 
 CREATE TABLE `transactions` (
   `transaction_id` int(11) NOT NULL,
+  `transType_id` int(11) DEFAULT NULL,
   `company_id` int(11) DEFAULT NULL,
   `created_by` int(11) DEFAULT NULL,
   `transaction_type` varchar(50) NOT NULL,
   `amount` decimal(10,2) NOT NULL,
   `description` text NOT NULL,
-  `date_made` timestamp NOT NULL DEFAULT current_timestamp()
+  `date_made` timestamp NOT NULL DEFAULT current_timestamp(),
+  `completed_in` enum('full','partial') NOT NULL DEFAULT 'full'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Dumping data for table `transactions`
 --
 
-INSERT INTO `transactions` (`transaction_id`, `company_id`, `created_by`, `transaction_type`, `amount`, `description`, `date_made`) VALUES
-(1, 1, 2, 'drawings', '5000.00', 'dew', '2024-10-12 06:43:47'),
-(2, 1, 2, 'drawings', '5000.00', 'dew', '2024-10-12 06:45:03'),
-(3, 1, 2, 'drawings', '5000.00', 'me', '2024-10-12 06:45:54'),
-(4, 1, 2, 'drawings', '5000.00', 'mendes', '2024-10-12 06:53:17'),
-(5, 1, 2, 'drawings', '5000.00', 'ki', '2024-10-12 07:07:49'),
-(6, 1, 2, 'add_capital', '50000.00', 'ha', '2024-10-12 07:10:45'),
-(7, 1, 2, 'add_capital', '50000.00', 'ha', '2024-10-07 07:45:16'),
-(8, 1, 2, 'add_capital', '400000.00', 'salary', '2024-11-02 20:53:38'),
-(9, 1, 2, 'drawings', '100000.00', 'outings', '2024-11-04 11:02:33'),
-(10, 1, 2, 'drawings', '51000.00', 'kamala', '2024-11-16 17:33:58'),
-(11, 1, 2, 'add_capital', '5000000.00', 'adding', '2024-11-29 08:02:04'),
-(12, 1, 2, 'sale', '95000.00', 'mengelee', '2024-11-29 08:04:08'),
-(13, 1, 2, 'drawings', '2000.00', 'mende', '2024-11-29 10:06:47'),
-(16, 1, 2, 'purchase', '1750000.00', '25kgs sembe', '2024-11-29 11:14:34'),
-(17, 1, 2, 'purchase', '1750000.00', '25kgs sembe', '2024-11-29 11:33:06'),
-(18, 1, 2, 'add_capital', '3000000.00', 'db', '2024-11-29 11:33:46'),
-(19, 1, 2, 'purchase', '175000.00', '25kgs sembe', '2024-11-29 11:46:46'),
-(20, 1, 2, 'add_capital', '300000.00', 'add', '2024-11-29 11:48:01'),
-(21, 1, 2, 'drawings', '4500.00', 'messi', '2024-11-29 12:09:50'),
-(22, 1, 2, 'sale', '40000.00', 'messi', '2024-11-29 12:15:51'),
-(23, 1, 2, 'sale', '40000.00', 'messi', '2024-11-29 12:16:32'),
-(24, 1, 2, 'sale', '40000.00', 'messi', '2024-11-29 12:17:10'),
-(25, 1, 2, 'purchase', '350000.00', '25kgs sembe', '2024-11-29 12:17:40'),
-(26, 1, 2, 'add_capital', '500000.00', 'mme', '2024-11-29 12:17:56'),
-(27, 1, 2, 'purchase', '175000.00', '25kgs sembe', '2024-11-29 12:24:54'),
-(28, 1, 2, 'sale', '40000.00', 'messi', '2024-11-29 14:55:11');
+INSERT INTO `transactions` (`transaction_id`, `transType_id`, `company_id`, `created_by`, `transaction_type`, `amount`, `description`, `date_made`, `completed_in`) VALUES
+(1, NULL, 1, 2, 'drawings', '5000.00', 'dew', '2024-10-12 06:43:47', 'full'),
+(2, NULL, 1, 2, 'drawings', '5000.00', 'dew', '2024-10-12 06:45:03', 'full'),
+(3, NULL, 1, 2, 'drawings', '5000.00', 'me', '2024-10-12 06:45:54', 'full'),
+(4, NULL, 1, 2, 'drawings', '5000.00', 'mendes', '2024-10-12 06:53:17', 'full'),
+(5, NULL, 1, 2, 'drawings', '5000.00', 'ki', '2024-10-12 07:07:49', 'full'),
+(6, NULL, 1, 2, 'add_capital', '50000.00', 'ha', '2024-10-12 07:10:45', 'full'),
+(7, NULL, 1, 2, 'add_capital', '50000.00', 'ha', '2024-10-07 07:45:16', 'full'),
+(8, NULL, 1, 2, 'add_capital', '400000.00', 'salary', '2024-11-02 20:53:38', 'full'),
+(9, NULL, 1, 2, 'drawings', '100000.00', 'outings', '2024-11-04 11:02:33', 'full'),
+(10, NULL, 1, 2, 'drawings', '51000.00', 'kamala', '2024-11-16 17:33:58', 'full'),
+(11, NULL, 1, 2, 'add_capital', '5000000.00', 'adding', '2024-11-29 08:02:04', 'full'),
+(12, NULL, 1, 2, 'sale', '95000.00', 'mengelee', '2024-11-29 08:04:08', 'full'),
+(13, NULL, 1, 2, 'drawings', '2000.00', 'mende', '2024-11-29 10:06:47', 'full'),
+(16, NULL, 1, 2, 'purchase', '1750000.00', '25kgs sembe', '2024-11-29 11:14:34', 'full'),
+(17, NULL, 1, 2, 'purchase', '1750000.00', '25kgs sembe', '2024-11-29 11:33:06', 'full'),
+(18, NULL, 1, 2, 'add_capital', '3000000.00', 'db', '2024-11-29 11:33:46', 'full'),
+(19, NULL, 1, 2, 'purchase', '175000.00', '25kgs sembe', '2024-11-29 11:46:46', 'full'),
+(20, NULL, 1, 2, 'add_capital', '300000.00', 'add', '2024-11-29 11:48:01', 'full'),
+(21, NULL, 1, 2, 'drawings', '4500.00', 'messi', '2024-11-29 12:09:50', 'full'),
+(22, NULL, 1, 2, 'sale', '40000.00', 'messi', '2024-11-29 12:15:51', 'full'),
+(23, NULL, 1, 2, 'sale', '40000.00', 'messi', '2024-11-29 12:16:32', 'full'),
+(24, NULL, 1, 2, 'sale', '40000.00', 'messi', '2024-11-29 12:17:10', 'full'),
+(25, NULL, 1, 2, 'purchase', '350000.00', '25kgs sembe', '2024-11-29 12:17:40', 'full'),
+(26, NULL, 1, 2, 'add_capital', '500000.00', 'mme', '2024-11-29 12:17:56', 'full'),
+(27, NULL, 1, 2, 'purchase', '175000.00', '25kgs sembe', '2024-11-29 12:24:54', 'full'),
+(28, NULL, 1, 2, 'sale', '40000.00', 'messi', '2024-11-29 14:55:11', 'full'),
+(29, NULL, 1, 2, 'sale', '40000.00', 'sii', '2024-12-01 05:54:51', 'full'),
+(30, NULL, 1, 2, 'sale', '19200.00', 'messi', '2024-12-01 06:36:28', 'full'),
+(31, NULL, 1, 2, 'sale', '4800.00', 'ghai', '2024-12-01 06:41:01', 'full'),
+(32, NULL, 1, 2, 'sale', '800.00', 'messi', '2024-12-01 06:47:55', 'full'),
+(33, NULL, 1, 1, 'sale', '500.00', 'Test Customer', '2024-12-01 07:20:33', 'full'),
+(34, NULL, 1, 2, 'sale', '400.00', '', '2024-12-01 07:23:15', 'full'),
+(35, NULL, 1, 2, 'purchase', '35000.00', 'jamaa', '2024-12-11 14:45:12', 'full'),
+(36, NULL, 1, 2, 'purchase', '35000.00', '25kgs sembe', '2024-12-11 14:46:06', 'full'),
+(37, NULL, 1, 2, 'purchase', '35000.00', '25kgs sembe', '2024-12-11 15:03:31', 'full'),
+(38, NULL, 1, 2, 'drawings', '5000.00', 'mimi', '2024-12-11 15:03:59', 'full'),
+(39, NULL, 1, 2, 'sale', '40000.00', 'you', '2024-12-11 16:28:21', 'full'),
+(40, 122, 1, 2, 'sale', '40000.00', 'memo', '2024-12-24 11:26:47', 'full'),
+(41, 124, 1, 2, 'sale', '40000.00', 'siuu', '2024-12-24 11:43:39', 'full'),
+(49, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 00:39:54', 'full'),
+(50, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 00:43:20', 'full'),
+(52, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 00:56:39', 'full'),
+(53, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 01:00:35', 'full'),
+(54, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 01:02:39', 'full'),
+(55, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 01:17:50', 'full'),
+(56, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 01:18:54', 'full'),
+(57, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 18:30:53', 'full'),
+(58, NULL, 1, 2, 'purchase', '105000.00', '', '2025-03-07 18:54:43', 'full'),
+(59, NULL, 1, 2, 'purchase', '70000.00', '', '2025-03-07 18:57:22', 'full'),
+(65, NULL, 1, 2, 'sale', '80000.00', '', '2025-03-08 01:25:28', 'full'),
+(66, NULL, 1, 2, 'sale', '80000.00', '', '2025-03-08 01:29:45', 'full'),
+(67, NULL, 1, 2, 'sale', '40000.00', '', '2025-03-08 06:43:51', 'full'),
+(68, NULL, 1, 2, 'sale', '80000.00', '', '2025-03-08 07:04:27', 'full'),
+(69, NULL, 1, 2, 'sale', '80000.00', '', '2025-03-08 07:19:16', 'full'),
+(70, NULL, 1, 2, 'sale', '120000.00', '', '2025-03-08 07:22:56', 'full'),
+(71, NULL, 1, 2, 'sale', '80000.00', '', '2025-03-08 07:27:36', 'full'),
+(72, NULL, 1, 2, 'sale', '40000.00', '', '2025-03-08 07:36:50', 'full'),
+(73, NULL, 1, 2, 'sale', '40000.00', '', '2025-03-08 07:48:51', 'full'),
+(74, NULL, 1, 2, 'sale', '40000.00', '', '2025-03-08 07:58:18', 'full'),
+(75, NULL, 1, 2, 'sale', '32000.00', '', '2025-03-08 08:06:24', 'full'),
+(76, NULL, 1, 2, 'sale', '40000.00', '', '2025-03-08 10:19:09', 'full'),
+(77, NULL, 1, 2, 'sale', '40000.00', '', '2025-03-08 10:19:53', 'full'),
+(79, NULL, 1, 2, 'sale', '40000.00', '', '2025-03-09 07:14:22', 'full'),
+(82, NULL, 1, 2, 'purchase', '35000.00', '', '2025-03-09 07:25:37', 'full');
 
 -- --------------------------------------------------------
 
@@ -416,11 +563,11 @@ CREATE TABLE `units` (
 --
 
 INSERT INTO `units` (`unit_id`, `product_id`, `company_id`, `created_by`, `name`, `per_single_quantity`, `buying_price`, `selling_price`, `available_units`) VALUES
-(1, 1, 1, 2, 'kg', '25.00', '1400.00', '1600.00', '400.00'),
-(2, 1, 1, 2, 'half_kg', '50.00', '700.00', '800.00', '800.00'),
-(3, 1, 1, 2, 'quarter_kg', '100.00', '350.00', '400.00', '1600.00'),
-(4, 3, 1, 2, 'mche', '20.00', '1750.00', '2000.00', '220.00'),
-(5, 3, 1, 2, 'nusu mche', '40.00', '875.00', '1000.00', '440.00'),
+(1, 1, 1, 2, 'kg', '25.00', '1400.00', '1600.00', '250.00'),
+(2, 1, 1, 2, 'half_kg', '50.00', '700.00', '800.00', '500.00'),
+(3, 1, 1, 2, 'quarter_kg', '100.00', '350.00', '400.00', '1000.00'),
+(4, 3, 1, 2, 'mche', '20.00', '1750.00', '2000.00', '200.00'),
+(5, 3, 1, 2, 'nusu mche', '40.00', '875.00', '1000.00', '400.00'),
 (6, 13, 2, 14, 'pack', '30.00', '800.00', '1000.00', '0.00');
 
 -- --------------------------------------------------------
@@ -485,6 +632,13 @@ INSERT INTO `users` (`user_id`, `company_id`, `username`, `firstName`, `lastName
 --
 ALTER TABLE `company`
   ADD PRIMARY KEY (`company_id`);
+
+--
+-- Indexes for table `methods_used`
+--
+ALTER TABLE `methods_used`
+  ADD PRIMARY KEY (`meth_id`),
+  ADD KEY `transaction_id` (`transaction_id`);
 
 --
 -- Indexes for table `money`
@@ -586,6 +740,12 @@ ALTER TABLE `company`
   MODIFY `company_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
+-- AUTO_INCREMENT for table `methods_used`
+--
+ALTER TABLE `methods_used`
+  MODIFY `meth_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+
+--
 -- AUTO_INCREMENT for table `money`
 --
 ALTER TABLE `money`
@@ -595,13 +755,13 @@ ALTER TABLE `money`
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=108;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=137;
 
 --
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=89;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=122;
 
 --
 -- AUTO_INCREMENT for table `payment_methods`
@@ -625,7 +785,7 @@ ALTER TABLE `purchases`
 -- AUTO_INCREMENT for table `purchases_items`
 --
 ALTER TABLE `purchases_items`
-  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `item_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=44;
 
 --
 -- AUTO_INCREMENT for table `quantity_destroyed`
@@ -643,7 +803,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `transactions`
 --
 ALTER TABLE `transactions`
-  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `transaction_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=83;
 
 --
 -- AUTO_INCREMENT for table `units`
@@ -666,6 +826,12 @@ ALTER TABLE `users`
 --
 -- Constraints for dumped tables
 --
+
+--
+-- Constraints for table `methods_used`
+--
+ALTER TABLE `methods_used`
+  ADD CONSTRAINT `methods_used_ibfk_1` FOREIGN KEY (`transaction_id`) REFERENCES `transactions` (`transaction_id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `money`
