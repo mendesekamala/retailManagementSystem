@@ -1,20 +1,18 @@
 <?php
+require_once 'db_connection.php'; // Your existing connection file
+require_once 'includes/functions.php';
+
 session_start();
+$company_id = $_SESSION['company_id'] ?? 1; // Adjust based on your auth system
 
-// Include database connection
-include('db_connection.php');
+// Default period
+$period = $_GET['period'] ?? 'month';
+$type_filter = $_GET['type_filter'] ?? null;
 
-// Handle date filtering if user submits a date range
-$whereClause = "";
-if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
-    $from_date = $_POST['from_date'];
-    $to_date = $_POST['to_date'];
-    $whereClause = " WHERE date_made BETWEEN '$from_date' AND '$to_date'";
-}
-
-// Fetch transactions from the database with filtering
-$transactions_query = "SELECT * FROM transactions $whereClause ORDER BY date_made DESC";
-$result = $conn->query($transactions_query);
+// Get data
+$summary = getTransactionSummary($conn, $company_id, $period);
+$profit_data = getProfitData($conn, $company_id, $period);
+$transactions = getRecentTransactions($conn, $company_id, $type_filter);
 ?>
 
 <!DOCTYPE html>
@@ -22,53 +20,97 @@ $result = $conn->query($transactions_query);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Transactions</title>
+    <title>Transaction Dashboard</title>
+    <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/view-transactions.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 </head>
 
 <?php include('sidebar.php'); ?>
 
 <body>
-    <div class="content">
+    <div class="dashboard-container">
+        <!-- Period Filter -->
         <div class="filter-container">
-            <form action="view-transactions.php" method="POST">
-                <label for="from_date">Show transactions from:</label>
-                <input type="date" id="from_date" name="from_date" required>
-                <label for="to_date">To:</label>
-                <input type="date" id="to_date" name="to_date" required>
-                <button type="submit" class="btn-filter">Filter</button>
-            </form>
+            <select id="period-filter" class="filter-dropdown">
+                <option value="day" <?= $period == 'day' ? 'selected' : '' ?>>Today</option>
+                <option value="3days" <?= $period == '3days' ? 'selected' : '' ?>>Last 3 Days</option>
+                <option value="week" <?= $period == 'week' ? 'selected' : '' ?>>Last Week</option>
+                <option value="month" <?= $period == 'month' ? 'selected' : '' ?>>Last Month</option>
+            </select>
         </div>
 
-        <div class="container">
-            
-            <table border="1" class="table-style">
-                <thead>
-                    <tr>
-                        <th>Transaction Type</th>
-                        <th>Amount</th>
-                        <th>Description</th>
-                        <th>Date</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if ($result->num_rows > 0): ?>
-                        <?php while($row = $result->fetch_assoc()): ?>
-                            <tr>
-                                <td><?= $row['transaction_type']; ?></td>
-                                <td><?= number_format($row['amount'], 2); ?></td>
-                                <td><?= $row['description']; ?></td>
-                                <td><?= $row['date_made']; ?></td>
-                            </tr>
-                        <?php endwhile; ?>
-                    <?php else: ?>
+        <!-- Summary Tiles -->
+        <div class="grid-container">
+            <div class="summary-grid">
+                <?php 
+                $tile_types = ['sale', 'profit', 'purchase', 'expenses', 'drawings', 'add_capitals'];
+                foreach ($tile_types as $tile_type): 
+                    $data = array_filter($summary, function($item) use ($tile_type) {
+                        return $item['transaction_type'] == $tile_type || 
+                              ($tile_type == 'profit' && $item['transaction_type'] == 'sale');
+                    });
+                    $data = $data ? array_values($data)[0] : ['count' => 0, 'total' => 0];
+                ?>
+                <div class="summary-tile <?= $tile_type ?>">
+                    <div class="tile-content">
+                        <span class="count">0</span>|
+                        <span class="amount">0</span>
+                        <div class="type-label"><?= ucfirst(str_replace('_', ' ', $tile_type)) ?></div>
+                    </div>
+                    <div class="tile-data" data-count="<?= $data['count'] ?>" data-amount="<?= $data['total'] ?>"></div>
+                </div>
+                <?php endforeach; ?>
+            </div>
+
+            <!-- Charts Grid -->
+            <div class="charts-grid">
+                <div class="chart-container line-chart">
+                    <canvas id="lineChart"></canvas>
+                </div>
+                <div class="chart-container pie-chart">
+                    <canvas id="pieChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="table-grid">
+                <div class="table-header">
+                    <h3>Recent Transactions</h3>
+                    <select id="type-filter" class="filter-dropdown">
+                        <option value="">All Types</option>
+                        <option value="sale" <?= $type_filter == 'sale' ? 'selected' : '' ?>>Sales</option>
+                        <option value="purchase" <?= $type_filter == 'purchase' ? 'selected' : '' ?>>Purchases</option>
+                        <option value="expenses" <?= $type_filter == 'expenses' ? 'selected' : '' ?>>Expenses</option>
+                        <option value="add_capitals" <?= $type_filter == 'add_capitals' ? 'selected' : '' ?>>Add Capitals</option>
+                        <option value="drawings" <?= $type_filter == 'drawings' ? 'selected' : '' ?>>Drawings</option>
+                    </select>
+                </div>
+                <table class="transactions-table">
+                    <thead>
                         <tr>
-                            <td colspan="4">No transactions found in the selected date range.</td>
+                            <th>Type</th>
+                            <th>Amount</th>
+                            <th>Description</th>
+                            <th>Date & Time</th>
                         </tr>
-                    <?php endif; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($transactions as $transaction): ?>
+                        <tr>
+                            <td class="type-<?= $transaction['transaction_type'] ?>"><?= ucfirst(str_replace('_', ' ', $transaction['transaction_type'])) ?></td>
+                            <td><?= number_format($transaction['amount'], 2) ?></td>
+                            <td><?= htmlspecialchars($transaction['description']) ?></td>
+                            <td><?= date('M j, Y H:i', strtotime($transaction['date_made'])) ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
+
+    <script src="scripts/view-transactions.js"></script>
 </body>
 </html>

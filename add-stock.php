@@ -16,8 +16,8 @@ $company_id = $_SESSION['company_id'];
 </head>
 
 <?php include('sidebar.php'); ?>
-<?php include('payment-modal.php'); ?>
 
+<?php include('payment-modal.php'); ?>
 
 <body>
 

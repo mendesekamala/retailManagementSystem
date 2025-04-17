@@ -53,18 +53,20 @@ try {
 
     // Insert purchase record
     $insert_purchase_sql = "INSERT INTO purchases_items (product_id, quantity, buying_price, selling_price, total, date_made) 
-                            VALUES (?, ?, ?, ?, ?, NOW())";
+    VALUES (?, ?, ?, ?, ?, NOW())";
     $stmt = $conn->prepare($insert_purchase_sql);
     $stmt->bind_param("iiddd", $product_id, $quantity, $buying_price, $selling_price, $grandTotal);
     $stmt->execute();
+    $purchase_item_id = $conn->insert_id; // This is your transType_id
 
-    // Insert transaction
-    $transaction_sql = "INSERT INTO transactions (transaction_type, amount, company_id, created_by, date_made) 
-                        VALUES ('purchase', ?, ?, ?, NOW())";
+    // Insert transaction with transType_id as purchase_item_id
+    $transaction_sql = "INSERT INTO transactions (transaction_type, transType_id, amount, company_id, created_by, date_made) 
+    VALUES ('purchase', ?, ?, ?, ?, NOW())";
     $stmt = $conn->prepare($transaction_sql);
-    $stmt->bind_param("dii", $grandTotal, $company_id, $created_by);
+    $stmt->bind_param("idii", $purchase_item_id, $grandTotal, $company_id, $created_by);
     $stmt->execute();
     $transaction_id = $conn->insert_id;
+
 
     // Fetch current money values for the company
     $fetch_money_sql = "SELECT * FROM money WHERE company_id = ?";

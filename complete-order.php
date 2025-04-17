@@ -30,17 +30,33 @@ try {
     // Begin transaction
     $conn->begin_transaction();
 
-    // Insert into orders table
-    $stmt = $conn->prepare("INSERT INTO orders (company_id, created_by, customer_name, status, time, profit, total) 
-                            VALUES (?, ?, ?, 'created', NOW(), ?, ?)");
-    $stmt->bind_param("iisdd", $company_id, $created_by, $customer_name, $total_profit, $total);
-    
+    // Generate the order number
+    $today = date('d/m'); // Format: day/month (e.g., 10/04)
+
+    // Get the count of orders for this company today
+    $stmt_count = $conn->prepare("SELECT COUNT(*) as order_count FROM orders 
+                                WHERE company_id = ? AND DATE(time) = CURDATE()");
+    $stmt_count->bind_param("i", $company_id);
+    $stmt_count->execute();
+    $result = $stmt_count->get_result();
+    $row = $result->fetch_assoc();
+    $order_count = $row['order_count'] + 1; // Add 1 for this new order
+
+    // Format the order number with leading zeros
+    $orderNo = $today . '/' . str_pad($order_count, 3, '0', STR_PAD_LEFT);
+
+    // Insert into orders table with the generated orderNo
+    $stmt = $conn->prepare("INSERT INTO orders (company_id, created_by, customer_name, status, time, profit, total, orderNo) 
+                            VALUES (?, ?, ?, 'created', NOW(), ?, ?, ?)");
+    $stmt->bind_param("iisdds", $company_id, $created_by, $customer_name, $total_profit, $total, $orderNo);
+
     if (!$stmt->execute()) {
         throw new Exception("Database error while inserting order: " . $stmt->error);
     }
-    
+
     $order_id = $conn->insert_id;
 
+    // Rest of your existing code remains the same...
     // Loop through each item in the order list
     foreach ($orderList as $item) {
         $product_id = $item['product_id'];
@@ -99,12 +115,13 @@ try {
     }
 
     // Insert transaction
-    $transaction_sql = "INSERT INTO transactions (transaction_type, amount, company_id, created_by, date_made) 
-                        VALUES ('sale', ?, ?, ?, NOW())";
+    $transaction_sql = "INSERT INTO transactions (transaction_type, transType_id, amount, company_id, created_by, date_made) 
+        VALUES ('sale', ?, ?, ?, ?, NOW())";
     $stmt = $conn->prepare($transaction_sql);
-    $stmt->bind_param("dii", $total, $company_id, $created_by);
+    $stmt->bind_param("idii", $order_id, $total, $company_id, $created_by);
     $stmt->execute();
     $transaction_id = $conn->insert_id;
+
 
     // Fetch current money values for the company
     $fetch_money_sql = "SELECT * FROM money WHERE company_id = ?";
@@ -166,6 +183,7 @@ try {
 }
 
 // Close database connection
-$stmt->close();
+if (isset($stmt)) $stmt->close();
+if (isset($stmt_count)) $stmt_count->close();
 $conn->close();
 ?>

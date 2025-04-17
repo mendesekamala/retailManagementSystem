@@ -78,7 +78,7 @@ if (isset($_SESSION['error_message'])) {
                 <input type="number" step="0.01" name="per_single_quantity" placeholder="Per Single Quantity" required oninput="calculateAvailableUnits(<?= $product['quantity']; ?>)">
                 <input type="number" step="0.01" name="buying_price" placeholder="Buying Price" required>
                 <input type="number" step="0.01" name="selling_price" placeholder="Selling Price" required>
-                <input type="text" id="available_units" name="available_units" placeholder="Available Units" disabled>
+                <input type="text" id="available_units" name="available_units" placeholder="Available Units" readonly>
                 <button type="submit" class="add-unit-button">
                     <i class='bx bx-plus'></i> Add Unit
                 </button>

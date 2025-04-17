@@ -15,16 +15,17 @@ $whereClause = "";
 if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
     $from_date = $_POST['from_date'];
     $to_date = $_POST['to_date'];
-    $whereClause = "WHERE time BETWEEN '$from_date' AND '$to_date' AND company_id = {$_SESSION['company_id']}";
+    $whereClause = "AND time BETWEEN '$from_date' AND '$to_date' AND company_id = {$_SESSION['company_id']}";
 } else {
     // Filter orders based on the company_id from the session if no date filter is applied
-    $whereClause = "WHERE company_id = {$_SESSION['company_id']}";
+    $whereClause = "AND company_id = {$_SESSION['company_id']}";
 }
 
 // Fetch order status counts based on the company_id of the logged-in user
 $queryStatusCounts = "
     SELECT status, COUNT(*) AS count 
     FROM orders 
+    WHERE company_id = {$_SESSION['company_id']} 
     $whereClause
     GROUP BY status";
 $resultStatusCounts = mysqli_query($conn, $queryStatusCounts);
@@ -45,8 +46,18 @@ while ($row = mysqli_fetch_assoc($resultStatusCounts)) {
     $orderCounts[$row['status']] = $row['count'];
 }
 
-// Fetch orders based on filter and company_id
-$queryOrders = "SELECT * FROM orders $whereClause";
+// Fetch orders based on filter and company_id, ensuring only the order with the highest order_id for each orderNo is selected
+$queryOrders = "
+    SELECT * 
+    FROM orders 
+    WHERE company_id = {$_SESSION['company_id']} 
+    AND order_id IN (
+        SELECT MAX(order_id) 
+        FROM orders 
+        WHERE company_id = {$_SESSION['company_id']}
+        GROUP BY orderNo
+    )
+    $whereClause";
 $resultOrders = mysqli_query($conn, $queryOrders);
 
 // Function to determine the order status based on associated order_items
@@ -122,7 +133,7 @@ function determineOrderStatus($orderId, $conn) {
         <table class="orders-table">
             <thead>
                 <tr>
-                    <th>Order ID</th>
+                    <th>Order No</th>
                     <th>Date</th>
                     <th>Time</th>
                     <th>Status</th>
@@ -131,7 +142,7 @@ function determineOrderStatus($orderId, $conn) {
                 </tr>
             </thead>
             <tbody>
-                <?php
+            <?php
                 if (mysqli_num_rows($resultOrders) > 0) {
                     while ($row = mysqli_fetch_assoc($resultOrders)) {
                         // Determine the status for the current order based on its items
@@ -148,78 +159,29 @@ function determineOrderStatus($orderId, $conn) {
                         $date = date("Y-m-d", strtotime($row['time']));
                         
                         echo "<tr>";
-                        echo "<td>" . $row['order_id'] . "</td>";
+                        echo "<td>" . ($row['orderNo'] ?? $row['order_id']) . "</td>";  // Modified line
                         echo "<td>" . $date . "</td>";
                         echo "<td>" . $time . "</td>";
                         echo "<td class='" . $orderStatus . "'>" . ucfirst($orderStatus) . "</td>";
                         echo "<td>" . $row['total'] . "</td>";
                         echo "<td>
-                                <a href='edit-order.php?order_id=" . $row['order_id'] . "' class='action-icon edit'><i class='bx bx-pencil'></i></a>
-                                <a href='cancel-order.php?order_id=" . $row['order_id'] . "' class='action-icon delete'><i class='bx bx-x'></i></a>
-                                <a href='view-order.php?order_id=" . $row['order_id'] . "' class='action-icon view'><i class='bx bx-show'></i></a>
-                              </td>";
+                                <a href='view-order.php?order_id=" . $row['order_id'] . "' class='action-icon view'>
+                                    <i class='bx bx-show'></i>
+                                </a>
+                                <a href='cancel-order.php?order_id=" . $row['order_id'] . "' class='action-icon delete'>
+                                    <i class='bx bx-x'></i>
+                                </a>
+                            </td>";
                         echo "</tr>";
                     }
                 } else {
                     echo "<tr><td colspan='6'>No orders found</td></tr>";
                 }
-                ?>
+            ?>
+
             </tbody>
         </table>
     </div>
-
-
-
-    <!-- Modal Container -->
-    <div id="editOrderModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <div id="modal-body">
-                <!-- Content from edit-order.php will be injected here -->
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal CSS -->
-    <style>
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 0;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        overflow: auto;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .modal-content {
-        background-color: #fff;
-        margin: 10% auto;
-        padding: 20px;
-        border-radius: 10px;
-        width: 50%;
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    .close {
-        color: #aaa;
-        float: right;
-        font-size: 28px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .close:hover,
-    .close:focus {
-        color: black;
-        text-decoration: none;
-        cursor: pointer;
-    }
-    </style>
-
-
 
 </body>
 </html>
