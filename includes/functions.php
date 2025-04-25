@@ -1,21 +1,13 @@
 <?php
-function getTransactionSummary($conn, $company_id, $period = 'month') {
+function getTransactionSummary($conn, $company_id, $period = 'week') {
     $where = "WHERE company_id = ?";
     $params = [$company_id];
     
     switch($period) {
-        case 'day':
-            $where .= " AND DATE(date_made) = CURDATE()";
-            break;
-        case '3days':
-            $where .= " AND date_made >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)";
-            break;
-        case 'week':
-            $where .= " AND date_made >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)";
-            break;
-        case 'month':
-            $where .= " AND date_made >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)";
-            break;
+        case 'day': $where .= " AND DATE(date_made) = CURDATE()"; break;
+        case '3days': $where .= " AND date_made >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)"; break;
+        case 'week': $where .= " AND date_made >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)"; break;
+        case 'month': $where .= " AND date_made >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)"; break;
     }
     
     $sql = "SELECT 
@@ -30,26 +22,41 @@ function getTransactionSummary($conn, $company_id, $period = 'month') {
     $stmt->bind_param("i", $company_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $results = $result->fetch_all(MYSQLI_ASSOC);
+    
+    // Add profit calculation from orders table
+    $where_profit = "WHERE company_id = ?";
+    switch($period) {
+        case 'day': $where_profit .= " AND DATE(time) = CURDATE()"; break;
+        case '3days': $where_profit .= " AND time >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)"; break;
+        case 'week': $where_profit .= " AND time >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)"; break;
+        case 'month': $where_profit .= " AND time >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)"; break;
+    }
+    
+    $sql_profit = "SELECT SUM(profit) as total FROM orders $where_profit";
+    $stmt = $conn->prepare($sql_profit);
+    $stmt->bind_param("i", $company_id);
+    $stmt->execute();
+    $profit_result = $stmt->get_result()->fetch_assoc();
+    
+    $results[] = [
+        'transaction_type' => 'profit',
+        'count' => 1,
+        'total' => $profit_result['total'] ?? 0
+    ];
+    
+    return $results;
 }
 
-function getProfitData($conn, $company_id, $period = 'month') {
+function getProfitData($conn, $company_id, $period = 'week') {
     $where = "WHERE o.company_id = ?";
     $params = [$company_id];
     
     switch($period) {
-        case 'day':
-            $where .= " AND DATE(o.time) = CURDATE()";
-            break;
-        case '3days':
-            $where .= " AND o.time >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)";
-            break;
-        case 'week':
-            $where .= " AND o.time >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)";
-            break;
-        case 'month':
-            $where .= " AND o.time >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)";
-            break;
+        case 'day': $where .= " AND DATE(o.time) = CURDATE()"; break;
+        case '3days': $where .= " AND o.time >= DATE_SUB(CURDATE(), INTERVAL 3 DAY)"; break;
+        case 'week': $where .= " AND o.time >= DATE_SUB(CURDATE(), INTERVAL 1 WEEK)"; break;
+        case 'month': $where .= " AND o.time >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)"; break;
     }
     
     $sql = "SELECT 
@@ -91,11 +98,12 @@ function getRecentTransactions($conn, $company_id, $type = null, $limit = 15) {
             LIMIT ?";
     
     $stmt = $conn->prepare($sql);
+    $limit_param = $limit;
     
     if ($type) {
-        $stmt->bind_param("isi", $company_id, $type, $limit);
+        $stmt->bind_param("isi", $company_id, $type, $limit_param);
     } else {
-        $stmt->bind_param("ii", $company_id, $limit);
+        $stmt->bind_param("ii", $company_id, $limit_param);
     }
     
     $stmt->execute();

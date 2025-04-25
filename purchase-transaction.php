@@ -52,16 +52,16 @@ try {
     }
 
     // Insert purchase record
-    $insert_purchase_sql = "INSERT INTO purchases_items (product_id, quantity, buying_price, selling_price, total, date_made) 
-    VALUES (?, ?, ?, ?, ?, NOW())";
+    $insert_purchase_sql = "INSERT INTO purchases_items (product_id, quantity, buying_price, selling_price, total, date_made, company_id, created_by) 
+    VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)";
     $stmt = $conn->prepare($insert_purchase_sql);
-    $stmt->bind_param("iiddd", $product_id, $quantity, $buying_price, $selling_price, $grandTotal);
+    $stmt->bind_param("iidddii", $product_id, $quantity, $buying_price, $selling_price, $grandTotal, $company_id, $created_by);
     $stmt->execute();
     $purchase_item_id = $conn->insert_id; // This is your transType_id
 
     // Insert transaction with transType_id as purchase_item_id
-    $transaction_sql = "INSERT INTO transactions (transaction_type, transType_id, amount, company_id, created_by, date_made) 
-    VALUES ('purchase', ?, ?, ?, ?, NOW())";
+    $transaction_sql = "INSERT INTO transactions (transaction_type, transType_id, amount, company_id, created_by, date_made, description) 
+    VALUES ('purchase', ?, ?, ?, ?, NOW(), 'purchase')";
     $stmt = $conn->prepare($transaction_sql);
     $stmt->bind_param("idii", $purchase_item_id, $grandTotal, $company_id, $created_by);
     $stmt->execute();

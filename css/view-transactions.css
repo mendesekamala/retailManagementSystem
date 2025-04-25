@@ -179,6 +179,57 @@ body {
 .type-drawings { color: var(--info-color); }
 .type-add_capitals { color: var(--dark-color); }
 
+/* Add these styles to your existing view-transactions.css file */
+
+/* Sorting indicators */
+.transactions-table th {
+    cursor: pointer;
+    position: relative;
+}
+
+.transactions-table th:hover {
+    background-color: #f5f5f5;
+}
+
+.transactions-table th.sorted-asc::after {
+    content: " ↑";
+}
+
+.transactions-table th.sorted-desc::after {
+    content: " ↓";
+}
+
+/* Tile colors */
+.summary-tile.sale {
+    background-color: #3498db;
+    color: white;
+}
+
+.summary-tile.profit {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.summary-tile.purchase {
+    background-color: #f39c12;
+    color: white;
+}
+
+.summary-tile.expenses {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.summary-tile.drawings {
+    background-color: #9b59b6;
+    color: white;
+}
+
+.summary-tile.add_capitals {
+    background-color: #34495e;
+    color: white;
+}
+
 @keyframes float {
     0% { transform: translateY(0px); }
     50% { transform: translateY(-10px); }

@@ -115,8 +115,8 @@ try {
     }
 
     // Insert transaction
-    $transaction_sql = "INSERT INTO transactions (transaction_type, transType_id, amount, company_id, created_by, date_made) 
-        VALUES ('sale', ?, ?, ?, ?, NOW())";
+    $transaction_sql = "INSERT INTO transactions (transaction_type, transType_id, amount, company_id, created_by, date_made, description) 
+        VALUES ('sale', ?, ?, ?, ?, NOW() ,'sale')";
     $stmt = $conn->prepare($transaction_sql);
     $stmt->bind_param("idii", $order_id, $total, $company_id, $created_by);
     $stmt->execute();

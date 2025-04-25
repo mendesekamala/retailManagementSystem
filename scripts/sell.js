@@ -245,38 +245,5 @@ document.addEventListener("DOMContentLoaded", function () {
 });
 
 
-// // Finish button event listener
-        // document.querySelector(".finish-btn").addEventListener("click", function () {
-            
-        //     // Base payment data
-            // let paymentData = {
-            //     orderList: orderList, // Assumes orderList and totalProfit are defined elsewhere
-            // };
-
-           
-        //     // Send data to complete-order.php via AJAX
-        //     fetch("complete-order.php", {
-        //         method: "POST",
-        //         headers: {
-        //             "Content-Type": "application/json",
-        //         },
-        //         body: JSON.stringify(paymentData),
-        //     })
-        //         .then((response) => response.json())
-        //         .then((data) => {
-        //             if (data.status === "success") {
-        //                 alert("Order completed successfully!");
-        //                 closeModal(); // Close modal after successful order completion
-        //                 window.location.reload(); // Reload the page
-        //             } else {
-        //                 alert("Error completing order: " + data.message);
-        //             }
-        //         })
-        //         .catch((error) => {
-        //             console.error("Error:", error);
-        //             alert("An error occurred while completing the order.");
-        //         });
-        // });
-
 
 

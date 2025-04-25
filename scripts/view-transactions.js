@@ -16,69 +16,15 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Initialize charts
-    initializeCharts();
-
-    // Filter event listeners
-    document.getElementById('period-filter').addEventListener('change', function() {
-        const period = this.value;
-        window.location.href = `view-transactions.php?period=${period}`;
-    });
-
-    document.getElementById('type-filter').addEventListener('change', function() {
-        const type = this.value;
-        const period = document.getElementById('period-filter').value;
-        
-        if (type) {
-            window.location.href = `view-transactions.php?period=${period}&type_filter=${type}`;
-        } else {
-            window.location.href = `view-transactions.php?period=${period}`;
-        }
-    });
-});
-
-function animateValue(element, start, end, duration, isCurrency = false) {
-    let startTimestamp = null;
-    const step = (timestamp) => {
-        if (!startTimestamp) startTimestamp = timestamp;
-        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-        const value = Math.floor(progress * (end - start) + start);
-        
-        if (isCurrency) {
-            element.textContent = value.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        } else {
-            element.textContent = value;
-        }
-        
-        if (progress < 1) {
-            window.requestAnimationFrame(step);
-        }
-    };
-    window.requestAnimationFrame(step);
-}
-
-function initializeCharts() {
-    // Line Chart - Profit, Sales, Purchases
     const lineCtx = document.getElementById('lineChart').getContext('2d');
-    
-    // Get data from PHP (simplified for example)
-    const profitData = JSON.parse('<?= json_encode($profit_data) ?>');
-    
-    const dates = profitData.map(item => item.date);
-    const sales = profitData.map(item => parseFloat(item.sales) || 0);
-    const purchases = profitData.map(item => parseFloat(item.cost) || 0);
-    const profits = profitData.map(item => parseFloat(item.profit) || 0);
-    
     new Chart(lineCtx, {
         type: 'line',
         data: {
-            labels: dates,
+            labels: chartData.dates,
             datasets: [
                 {
                     label: 'Sales',
-                    data: sales,
+                    data: chartData.sales,
                     borderColor: '#3498db',
                     backgroundColor: 'rgba(52, 152, 219, 0.1)',
                     borderWidth: 2,
@@ -87,7 +33,7 @@ function initializeCharts() {
                 },
                 {
                     label: 'Purchases',
-                    data: purchases,
+                    data: chartData.purchases,
                     borderColor: '#f39c12',
                     backgroundColor: 'rgba(243, 156, 18, 0.1)',
                     borderWidth: 2,
@@ -96,7 +42,7 @@ function initializeCharts() {
                 },
                 {
                     label: 'Profit',
-                    data: profits,
+                    data: chartData.profits,
                     borderColor: '#2ecc71',
                     backgroundColor: 'rgba(46, 204, 113, 0.1)',
                     borderWidth: 2,
@@ -142,12 +88,8 @@ function initializeCharts() {
         }
     });
 
-    // Pie Chart - Transaction Types
+    // Pie Chart
     const pieCtx = document.getElementById('pieChart').getContext('2d');
-    
-    // Get data from PHP (simplified for example)
-    const summaryData = JSON.parse('<?= json_encode($summary) ?>');
-    
     const labels = summaryData.map(item => item.transaction_type);
     const counts = summaryData.map(item => item.count);
     const colors = labels.map(label => {
@@ -157,6 +99,7 @@ function initializeCharts() {
             case 'expenses': return '#e74c3c';
             case 'drawings': return '#9b59b6';
             case 'add_capitals': return '#34495e';
+            case 'profit': return '#2ecc71';
             default: return '#95a5a6';
         }
     });
@@ -208,4 +151,77 @@ function initializeCharts() {
         },
         plugins: [ChartDataLabels]
     });
+
+    // Filter event listeners
+    document.getElementById('period-filter').addEventListener('change', function() {
+        const period = this.value;
+        window.location.href = `view-transactions.php?period=${period}`;
+    });
+
+    document.getElementById('type-filter').addEventListener('change', function() {
+        const type = this.value;
+        const period = document.getElementById('period-filter').value;
+        
+        if (type) {
+            window.location.href = `view-transactions.php?period=${period}&type_filter=${type}`;
+        } else {
+            window.location.href = `view-transactions.php?period=${period}`;
+        }
+    });
+
+    // Table sorting
+    document.querySelectorAll('.transactions-table th').forEach(header => {
+        header.addEventListener('click', () => {
+            const table = header.closest('table');
+            const columnIndex = Array.from(header.parentNode.children).indexOf(header);
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+            
+            rows.sort((a, b) => {
+                const aText = a.children[columnIndex].textContent;
+                const bText = b.children[columnIndex].textContent;
+                
+                if (columnIndex === 1) {
+                    return parseFloat(aText.replace(/,/g, '')) - parseFloat(bText.replace(/,/g, ''));
+                }
+                else if (columnIndex === 3) {
+                    return new Date(aText) - new Date(bText);
+                }
+                return aText.localeCompare(bText);
+            });
+            
+            if (header.classList.contains('sorted-asc')) {
+                rows.reverse();
+                header.classList.remove('sorted-asc');
+                header.classList.add('sorted-desc');
+            } else {
+                header.classList.remove('sorted-desc');
+                header.classList.add('sorted-asc');
+            }
+            
+            table.querySelector('tbody').append(...rows);
+        });
+    });
+});
+
+function animateValue(element, start, end, duration, isCurrency = false) {
+    let startTimestamp = null;
+    const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        
+        if (isCurrency) {
+            element.textContent = value.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        } else {
+            element.textContent = value;
+        }
+        
+        if (progress < 1) {
+            window.requestAnimationFrame(step);
+        }
+    };
+    window.requestAnimationFrame(step);
 }

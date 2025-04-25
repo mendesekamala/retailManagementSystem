@@ -1,18 +1,26 @@
 <?php
-require_once 'db_connection.php'; // Your existing connection file
+require_once 'db_connection.php';
 require_once 'includes/functions.php';
 
 session_start();
-$company_id = $_SESSION['company_id'] ?? 1; // Adjust based on your auth system
+$company_id = $_SESSION['company_id'] ?? 1;
 
-// Default period
-$period = $_GET['period'] ?? 'month';
+// Default period to week (7 days)
+$period = $_GET['period'] ?? 'week';
 $type_filter = $_GET['type_filter'] ?? null;
 
 // Get data
 $summary = getTransactionSummary($conn, $company_id, $period);
 $profit_data = getProfitData($conn, $company_id, $period);
 $transactions = getRecentTransactions($conn, $company_id, $type_filter);
+
+// Prepare chart data
+$chart_data = [
+    'dates' => array_column($profit_data, 'date'),
+    'sales' => array_column($profit_data, 'sales'),
+    'purchases' => array_column($profit_data, 'cost'),
+    'profits' => array_column($profit_data, 'profit')
+];
 ?>
 
 <!DOCTYPE html>
@@ -25,6 +33,10 @@ $transactions = getRecentTransactions($conn, $company_id, $type_filter);
     <link rel="stylesheet" href="css/view-transactions.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <script>
+        var chartData = <?php echo json_encode($chart_data); ?>;
+        var summaryData = <?php echo json_encode($summary); ?>;
+    </script>
 </head>
 
 <?php include('sidebar.php'); ?>
@@ -48,8 +60,7 @@ $transactions = getRecentTransactions($conn, $company_id, $type_filter);
                 $tile_types = ['sale', 'profit', 'purchase', 'expenses', 'drawings', 'add_capitals'];
                 foreach ($tile_types as $tile_type): 
                     $data = array_filter($summary, function($item) use ($tile_type) {
-                        return $item['transaction_type'] == $tile_type || 
-                              ($tile_type == 'profit' && $item['transaction_type'] == 'sale');
+                        return $item['transaction_type'] == $tile_type;
                     });
                     $data = $data ? array_values($data)[0] : ['count' => 0, 'total' => 0];
                 ?>

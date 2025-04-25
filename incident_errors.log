@@ -1,0 +1,2 @@
+[2025-04-25 05:32:09] Failed to insert into transactions | MySQL Error: Column 'description' cannot be null
+[2025-04-25 05:32:09] Transaction rolled back due to error: Failed to insert into transactions
