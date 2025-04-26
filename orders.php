@@ -1,86 +1,5 @@
 <?php
 session_start();
-
-// Connect to the database
-include('db_connection.php');
-
-// Check if the user is logged in and the session has the required data
-if (!isset($_SESSION['user_id']) || !isset($_SESSION['company_id'])) {
-    echo "User not logged in or session data is missing.";
-    exit(); // Exit if no session data
-}
-
-// Handle date filtering
-$whereClause = "";
-if (isset($_POST['from_date']) && isset($_POST['to_date'])) {
-    $from_date = $_POST['from_date'];
-    $to_date = $_POST['to_date'];
-    $whereClause = "AND time BETWEEN '$from_date' AND '$to_date' AND company_id = {$_SESSION['company_id']}";
-} else {
-    // Filter orders based on the company_id from the session if no date filter is applied
-    $whereClause = "AND company_id = {$_SESSION['company_id']}";
-}
-
-// Fetch order status counts based on the company_id of the logged-in user
-$queryStatusCounts = "
-    SELECT status, COUNT(*) AS count 
-    FROM orders 
-    WHERE company_id = {$_SESSION['company_id']} 
-    $whereClause
-    GROUP BY status";
-$resultStatusCounts = mysqli_query($conn, $queryStatusCounts);
-if (!$resultStatusCounts) {
-    die("Error with the query: " . mysqli_error($conn));
-}
-
-// Initialize status counts
-$orderCounts = [
-    'created' => 0,
-    'sent' => 0,
-    'cancelled' => 0,
-    'delivered' => 0
-];
-
-// Assign the counts to the correct statuses
-while ($row = mysqli_fetch_assoc($resultStatusCounts)) {
-    $orderCounts[$row['status']] = $row['count'];
-}
-
-// Fetch orders based on filter and company_id, ensuring only the order with the highest order_id for each orderNo is selected
-$queryOrders = "
-    SELECT * 
-    FROM orders 
-    WHERE company_id = {$_SESSION['company_id']} 
-    AND order_id IN (
-        SELECT MAX(order_id) 
-        FROM orders 
-        WHERE company_id = {$_SESSION['company_id']}
-        GROUP BY orderNo
-    )
-    $whereClause";
-$resultOrders = mysqli_query($conn, $queryOrders);
-
-// Function to determine the order status based on associated order_items
-function determineOrderStatus($orderId, $conn) {
-    $itemStatusQuery = "
-        SELECT status, COUNT(*) AS count 
-        FROM order_items 
-        WHERE order_id = $orderId 
-        GROUP BY status
-        ORDER BY count DESC";
-    
-    $itemStatusResult = mysqli_query($conn, $itemStatusQuery);
-
-    if (mysqli_num_rows($itemStatusResult) == 1) {
-        // All items have the same status
-        $singleStatusRow = mysqli_fetch_assoc($itemStatusResult);
-        return $singleStatusRow['status'];
-    } else {
-        // Items have mixed statuses, take the most frequent
-        $row = mysqli_fetch_assoc($itemStatusResult);
-        return $row['status'];
-    }
-}
 ?>
 
 <!DOCTYPE html>
@@ -88,100 +7,144 @@ function determineOrderStatus($orderId, $conn) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/orders.css">
+    <title>Orders Dashboard</title>
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
-    <title>Orders</title>
+    <link href="css/orders.css" rel="stylesheet">
+    <style>
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
 </head>
 
 <?php include('sidebar.php'); ?>
 
 <body>
-    <div class="content">
-        <!-- Date Filter Form -->
-        <div class="filter-container">
-            <form method="POST" action="orders.php">
-                <label for="from_date">From:</label>
-                <input type="date" id="from_date" name="from_date" required>
-                <label for="to_date">To:</label>
-                <input type="date" id="to_date" name="to_date" required>
-                <button type="submit" class="btn-filter">Filter</button>
-            </form>
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Orders Dashboard</h1>
+            <div class="date-filter">
+                <button class="btn active" data-days="7">Last 7 Days</button>
+                <button class="btn" data-days="30">Last 30 Days</button>
+                <button class="btn" data-days="90">Last 90 Days</button>
+                <button class="btn" id="custom-range">
+                    <i class='bx bx-calendar'></i> Custom Range
+                </button>
+            </div>
+        </header>
+
+        <div class="summary-cards">
+            <div class="card">
+                <div class="card-icon bg-blue">
+                    <i class='bx bx-receipt'></i>
+                </div>
+                <div class="card-info">
+                    <h3>Total Orders</h3>
+                    <span id="total-orders">0</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon bg-green">
+                    <i class='bx bx-credit-card'></i>
+                </div>
+                <div class="card-info">
+                    <h3>Total Revenue</h3>
+                    <span id="total-revenue">Tsh0.00</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon bg-purple">
+                    <i class='bx bx-trending-up'></i>
+                </div>
+                <div class="card-info">
+                    <h3>Avg. Order Value</h3>
+                    <span id="avg-order-value">Tsh0.00</span>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-icon bg-orange">
+                    <i class='bx bx-dollar-circle'></i>
+                </div>
+                <div class="card-info">
+                    <h3>Total Profit</h3>
+                    <span id="total-profit">Tsh0.00</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Order Status Tiles -->
-        <div class="summary-tiles">
-            <div class="tile created">
-                <p><?php echo $orderCounts['created']; ?></p>
-                <span>Created</span>
+        <div class="charts-section">
+            <div class="chart-container">
+                <h2>Revenue Trend</h2>
+                <canvas id="revenue-chart"></canvas>
             </div>
-            <div class="tile sent">
-                <p><?php echo $orderCounts['sent']; ?></p>
-                <span>Sent</span>
-            </div>
-            <div class="tile cancelled">
-                <p><?php echo $orderCounts['cancelled']; ?></p>
-                <span>Cancelled</span>
-            </div>
-            <div class="tile delivered">
-                <p><?php echo $orderCounts['delivered']; ?></p>
-                <span>Delivered</span>
+            <div class="chart-container">
+                <h2>Profit Trend</h2>
+                <canvas id="profit-chart"></canvas>
             </div>
         </div>
 
-        <!-- Orders Table -->
-        <table class="orders-table">
-            <thead>
-                <tr>
-                    <th>Order No</th>
-                    <th>Date</th>
-                    <th>Time</th>
-                    <th>Status</th>
-                    <th>Total</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-            <?php
-                if (mysqli_num_rows($resultOrders) > 0) {
-                    while ($row = mysqli_fetch_assoc($resultOrders)) {
-                        // Determine the status for the current order based on its items
-                        $orderStatus = determineOrderStatus($row['order_id'], $conn);
-                        
-                        // Update order status in the database if it differs
-                        if ($row['status'] != $orderStatus) {
-                            $updateOrderStatus = "UPDATE orders SET status='$orderStatus' WHERE order_id=" . $row['order_id'];
-                            mysqli_query($conn, $updateOrderStatus);
-                        }
-
-                        // Format time and date
-                        $time = date("H:i", strtotime($row['time']));
-                        $date = date("Y-m-d", strtotime($row['time']));
-                        
-                        echo "<tr>";
-                        echo "<td>" . ($row['orderNo'] ?? $row['order_id']) . "</td>";  // Modified line
-                        echo "<td>" . $date . "</td>";
-                        echo "<td>" . $time . "</td>";
-                        echo "<td class='" . $orderStatus . "'>" . ucfirst($orderStatus) . "</td>";
-                        echo "<td>" . $row['total'] . "</td>";
-                        echo "<td>
-                                <a href='view-order.php?order_id=" . $row['order_id'] . "' class='action-icon view'>
-                                    <i class='bx bx-show'></i>
-                                </a>
-                                <a href='cancel-order.php?order_id=" . $row['order_id'] . "' class='action-icon delete'>
-                                    <i class='bx bx-x'></i>
-                                </a>
-                            </td>";
-                        echo "</tr>";
-                    }
-                } else {
-                    echo "<tr><td colspan='6'>No orders found</td></tr>";
-                }
-            ?>
-
-            </tbody>
-        </table>
+        <div class="table-section">
+            <h2>Recent Orders</h2>
+            <div class="table-controls">
+                <input type="text" id="order-search" placeholder="Search orders...">
+                <select id="status-filter">
+                    <option value="">All Statuses</option>
+                    <option value="created">Created</option>
+                    <option value="sent">Sent</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="table-responsive">
+                <table id="orders-table">
+                    <thead>
+                        <tr>
+                            <th>Order No</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Profit</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <button id="prev-page" disabled><i class='bx bx-chevron-left'></i></button>
+                <span id="page-info">Page 1 of 1</span>
+                <button id="next-page" disabled><i class='bx bx-chevron-right'></i></button>
+            </div>
+        </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
+    <script src="scripts/view-orders.js"></script>
 </body>
 </html>

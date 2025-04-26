@@ -1,0 +1,300 @@
+body {
+    font-family: Arial, sans-serif;
+    margin-left: 250px;
+    background-color: #f4f4f4;
+}
+
+.content {
+    padding: 0 120px;
+}
+
+/* Orders Table */
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);  /* Box-shadow effect */
+}
+
+.orders-table th, .orders-table td {
+    padding: 12px;
+    text-align: center;
+}
+
+/* Table Header Styling */
+.orders-table thead {
+    background-color: #f8f8f8;  /* Special background for header */
+    border: 1px solid black;
+}
+
+.orders-table th {
+    font-weight: bold;
+    color: #333;
+}
+
+/* Row and Column Styling using nth-child */
+.orders-table tr:nth-child(even) {
+    background-color: #f9f9f9;  /* Alternating row colors */
+}
+
+.orders-table tbody tr {
+    transition: background-color 0.3s;
+    border-bottom: 2px solid rgb(134, 128, 128);
+}
+
+.orders-table tbody tr:hover {
+    background-color: #ececec;  /* Hover effect */
+}
+
+.orders-table td:nth-child(odd) {
+    background-color: #ffffff;
+}
+
+.orders-table td:nth-child(even) {
+    background-color: #f7f7f7;
+}
+
+/* Action Icons */
+.action-icon {
+    margin: 0 8px;
+    color: #007bff;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 17px;
+}
+
+.action-icon:hover {
+    color: #0056b3;
+}
+
+.action-icon.edit:hover {
+    color: #28a745; /* Green for edit */
+}
+
+.action-icon.delete:hover {
+    color: #dc3545; /* Red for delete */
+}
+
+.action-icon.view:hover {
+    color: #17a2b8; /* Blue for view */
+}
+
+/* Remove lines between rows and columns */
+.orders-table th, .orders-table td {
+    border: none;  /* No borders */
+}
+
+/* Status Colors in Table */
+.orders-table .created {
+    color: blue;
+    font-weight: bold;
+}
+
+.orders-table .sent {
+    color: rgb(255, 174, 0);
+    font-weight: bold;
+}
+
+.orders-table .cancelled {
+    color: red;
+    font-weight: bold;
+}
+.orders-table .delivered {
+    color: green;
+    font-weight: bold;
+}
+
+/* Filter Container */
+.filter-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.filter-container form {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.filter-container label {
+    font-weight: bold;
+}
+
+input[type="date"] {
+    padding: 8px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+/* Button Style with Filter Icon */
+.btn-filter {
+    display: flex;
+    align-items: center;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.btn-filter:hover {
+    background-color: #0056b3;
+}
+
+/* Summary Tiles */
+.summary-tiles {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.tile {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    width: 30%;
+}
+
+.tile p {
+    font-size: 36px;
+    margin: 0;
+}
+
+.tile span {
+    font-size: 14px;
+}
+
+/* Tile Colors */
+.created {
+    border-left: 4px solid blue;
+}
+
+.sent {
+    border-left: 4px solid  rgb(255, 174, 0);
+}
+
+.cancelled {
+    border-left: 4px solid red;
+}
+.delivered {
+    border-left: 4px solid green;
+}
+
+
+
+
+
+/* edit order modal --------->>> newly added*/ 
+
+
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5;
+}
+
+.modal {
+    width: 100%;
+    max-width: 800px;
+    margin: 30px auto;
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.order-status {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 10px;
+}
+
+.order-heading {
+    text-align: center;
+    font-size: 18px;
+    margin-bottom: 20px;
+}
+
+.order-items table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.order-items th, .order-items td {
+    padding: 10px;
+    text-align: center;
+    border: 1px solid #ddd;
+}
+
+.qty-btn {
+    padding: 5px 10px;
+    margin: 0 5px;
+    cursor: pointer;
+}
+
+.remove-btn {
+    background-color: transparent;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+}
+
+.order-total {
+    text-align: right;
+    margin-top: 20px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.complete-btn {
+    display: block;
+    width: 20%;
+    padding: 12px;
+    background-color: #4CAF50;
+    border: none;
+    color: white;
+    font-size: 16px;
+    border-radius: 5px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+
+
+#editModal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 40px 10px;
+}
+
+.modal-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0; left: 0;
+    z-index: -1;
+}
+
+.modal-content {
+    background: #fff;
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+

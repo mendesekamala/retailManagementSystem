@@ -79,7 +79,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function updateSummaryCards(summary) {
         const formatMoney = val =>
-            `$${parseFloat(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            `Tsh${parseFloat(val || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
         document.getElementById('total-orders').textContent = summary.total_orders || 0;
         document.getElementById('total-revenue').textContent = formatMoney(summary.total_revenue);
@@ -144,7 +144,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: value => '$' + value.toLocaleString()
+                            callback: value => 'Tsh' + value.toLocaleString()
                         }
                     }
                 }
@@ -174,7 +174,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     y: {
                         beginAtZero: true,
                         ticks: {
-                            callback: value => '$' + value.toLocaleString()
+                            callback: value => 'Tsh' + value.toLocaleString()
                         }
                     }
                 }
@@ -219,12 +219,17 @@ document.addEventListener('DOMContentLoaded', function() {
                     <td>${order.orderNo || 'N/A'}</td>
                     <td>${order.customer_name || 'N/A'}</td>
                     <td>${formattedDate}</td>
-                    <td>$${formattedTotal}</td>
-                    <td>$${formattedProfit}</td>
+                    <td>Tsh${formattedTotal}</td>
+                    <td>Tsh${formattedProfit}</td>
                     <td><span class="status-badge status-${order.status || 'unknown'}">${order.status || 'unknown'}</span></td>
                     <td>
-                        <button class="action-btn"><i class='bx bx-show'></i></button>
-                        <button class="action-btn"><i class='bx bx-edit'></i></button>
+                        <a href="view-order.php?order_id=${order.order_id}" class="action-btn view" title="View Order">
+                            <i class='bx bx-show'></i>
+                        </a>
+                        <a href="cancel-order.php?order_id=${order.order_id}" class="action-btn delete" title="Cancel Order" 
+                           onclick="return confirm('Are you sure you want to cancel order ${order.orderNo || order.order_id}?')">
+                            <i class='bx bx-x'></i>
+                        </a>
                     </td>
                 `;
                 tableBody.appendChild(row);
