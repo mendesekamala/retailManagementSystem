@@ -56,8 +56,7 @@ try {
 
     $order_id = $conn->insert_id;
 
-    // Rest of your existing code remains the same...
-    // Loop through each item in the order list
+    // Loop through each item in the order list 
     foreach ($orderList as $item) {
         $product_id = $item['product_id'];
         $item_name = $item['name'];
@@ -66,8 +65,9 @@ try {
         $selling_price = $item['price'];
         $sum = $item['sum'];
         $unit_type = $item['unit_type'] ?? 'whole';
-
-        // Determine 'sold_in' value based on unit type
+        $unit_id = null; // Initialize as null
+        
+        // Determine 'sold_in' value and unit_id based on unit type
         if ($unit_type === 'whole') {
             $sold_in = 'whole';
         } else {
@@ -84,19 +84,22 @@ try {
             $stmt_unit->close();
         }
 
-        // Insert into order_items table
-        $stmt = $conn->prepare("INSERT INTO order_items (order_id, product_id, company_id, created_by, name, quantity, buying_price, selling_price, sum, sold_in) 
-                                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("iiiisiddss", $order_id, $product_id, $company_id, $created_by, $item_name, $quantity, $buying_price, $selling_price, $sum, $sold_in);
+        // Insert into order_items table with unit_id
+        $stmt = $conn->prepare("INSERT INTO order_items 
+            (order_id, product_id, company_id, created_by, name, quantity, 
+            buying_price, selling_price, sum, sold_in, unit_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("iiiisiddssi", 
+            $order_id, $product_id, $company_id, $created_by, $item_name, 
+            $quantity, $buying_price, $selling_price, $sum, $sold_in, $unit_id);
         $stmt->execute();
 
-        // Inventory update logic
+        // Inventory update logic remains the same
         if ($unit_type === 'whole') {
             $stmt = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE product_id = ?");
             $stmt->bind_param("ii", $quantity, $product_id);
             $stmt->execute();
         } else {
-            $unit_id = $item['unit_id'];
             $stmt = $conn->prepare("SELECT per_single_quantity FROM units WHERE unit_id = ?");
             $stmt->bind_param("i", $unit_id);
             $stmt->execute();

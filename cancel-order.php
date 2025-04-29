@@ -70,11 +70,12 @@ try {
 
     // Reverse transaction
     $reverseTransaction = $conn->prepare("INSERT INTO transactions 
-        (transaction_type, transType_id, amount, company_id, created_by, date_made) 
-        VALUES ('refund', ?, ?, ?, ?, NOW())");
+        (transaction_type, transType_id, amount, company_id, created_by, date_made, description) 
+        VALUES ('refund', ?, ?, ?, ?, NOW(), 'sale_cancelled')");
     $negative_total = -1 * $total;
     $reverseTransaction->bind_param("idii", $order_id, $negative_total, $company_id, $created_by);
     $reverseTransaction->execute();
+
 
 
     $reverse_transaction_id = $conn->insert_id;

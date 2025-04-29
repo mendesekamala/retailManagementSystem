@@ -202,12 +202,12 @@ input[readonly] {
 }
 
 .btn-secondary {
-    background-color: #e74c3c;
+    background-color: purple;
     color: white;
 }
 
 .btn-secondary:hover {
-    background-color: #c0392b;
+    background-color: rgb(211, 105, 211);
 }
 
 .complete-order-btn {

@@ -1,0 +1,99 @@
+if you were to give the system tommorrow to customer for use 
+	what are the things/functionalities you'd have to immediately fix/develop
+	now fix those, this thing is needed...
+
+	if order was cancelled it's data shouldn't be used in the orders page
+	most pages with graphs require internet connection, if no internet they simply don't load and you may thnk it's broken 
+		so add a script to check internet if there's not, send message so user connect to internet to be able to view graphs
+	on click eye icon (view-order.php) in orders.php page 
+		the view-order.php page to have link on click it takes back user to orders page, 
+			a button to replicate the order-items into sell.php invoice, such that user can use same order, alters few things and re-complete that order
+				(in case the order is cancelled so it is to be re-entered cause customer edited some staffs of the order)
+	debtor & creditor payment_methods
+	page to view debtors
+	page to view creditors
+
+register page 
+	should have a welcome page demosntrating how helpful the systems is
+		updates money balances as per the transactions happened(sales, expenses)
+		updates stock as per sales made
+			can sell in whole and units quanities whilst updating stock levels as per sales made
+		generates reports & attractive visualisation of business information (sales, purchases, money balances, orders, stock with graphs and charts)
+	signUp 
+		shouldn't be that simple model
+		first and las name -> concatunated with dot "mendes.kamala" and used to make user name 
+		all other staffs remain	
+		password and re-type passwod functionality confirm if they are the same
+		after signup and first logIn there will be a page dedicated to initialize the stock on first company registry and it should be closed in three days
+			user it to be alerted so "it should be closed in three days" since first logIn for business logics integrity 
+		shouldn't be that simple model
+			like a much bigger and attractive model with more warm welcoming texts and better info recording inputs as described above and already exstng
+
+payment-modal modification, remove button to be well styled in the sell page and purchase page 
+
+viewIncidents page	left container[graph total cost of destroyed products against period] right container[frequently destroyed list, below it destroyed in huge qty]
+
+add more stats in the orders page [revenues/sales, profit, {{{debtors}}}]
+
+viewStock page 
+
+viewPurchases page 
+
+style most pages to have a theme and a feel of view-orders [orders.php]
+
+table customers, and suppliers.
+	customers[name, contactNo, location, NoOfTransactionsWithCount] 
+	supplier[name, contactNo, location, NoOfTransactionsWithCount]
+	(on selling or purchasing on inputing the customers/suplliers nama it searches and user can select, if not in the DB then user can finish up writing that new person)
+
+filtering in view orders page
+
+improve error reporting, such that wen certain user eencounter an error wen using the system they get proper error whilst keeping the transaction in the DB atom
+	any single failure on a transaction it shouldn't alter any other data
+	that error should be displayed to user there annd also sent to me via gmail
+
+multiLanguage support
+
+system should be accesible on phones as well
+
+custom sales
+	not requiring stock data, like for small small smallest bNess pple who like somehow purchase product immediately when customer asks for it like 
+		buying to sell when order is made most pple doing it nowDays(sumayya and via_accesories then)
+	it shall have it's own orders table on making such a sell user will have to provide [bPrice, sPrice, anyExpense incurred on the process]
+	it shall record the sale(pri_id, prdctName, bPrice, sPrice, anyExpense, profit, customerName) and will be altering money balance (custom_sales_balance)
+	info expected from these linda sales[profit, salesMade, revenues, custom_Sales_balance]
+	the functionality shall be on this nav panel"custom sales" {make & view}
+		make... is descibed above
+		view.. graphs (sales, profits) sales table, custom_sales_Balance
+
+
+
+
+
+
+
+purchases to be like the createOrder format where you can list numerous number of items bought and as you save it saves purchases and purchased items
+
+editOrder page to be engineered as per roles
+	storeKeeper can only view order, and edit abt packing the order_items
+	deliverMan can only view order, and edit abt delivering and customer received order_items and mark returns if any
+
+
+on creating unit of sake for some product, it should auto fill selling&buying prices as perSingleQuantity value
+	but should be able to let user edit in case they may differ
+
+reports page
+
+manageUsers page
+	icons [edit, view and delete] functioinalities
+
+goLive, put it online
+
+find customers
+
+extend an ecomeerce shoping platform for products from the shops signed up in the system
+	shopOwners, customers and deliveryMen
+
+enable mobile payment portal to invoke ussd codes for user to complete payments right from the system online
+
+
