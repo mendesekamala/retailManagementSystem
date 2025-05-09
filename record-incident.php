@@ -24,13 +24,8 @@ try {
 
     foreach ($data['incidentList'] as $incident) {
         if ($incident['unit_type'] === 'whole') {
-            $stmt = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE product_id = ?");
-            $stmt->bind_param('di', $incident['quantity_destroyed'], $incident['product_id']);
-            if (!$stmt->execute()) {
-                logError("Failed to update products quantity", $stmt);
-                throw new Exception("Failed to update products quantity");
-            }
 
+            // Get current stock and price
             $stmt = $conn->prepare("SELECT quantity, buying_price FROM products WHERE product_id = ?");
             $stmt->bind_param("i", $incident['product_id']);
             if (!$stmt->execute()) {
@@ -42,13 +37,30 @@ try {
             $current_quantity = $row['quantity'];
             $buying_price = $row['buying_price'];
 
+            if ($incident['quantity_destroyed'] > $current_quantity) {
+                throw new Exception("Cannot destroy more quantity than available in stock (whole).");
+            }
+
+            // Reduce product quantity
+            $stmt = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE product_id = ?");
+            $stmt->bind_param('di', $incident['quantity_destroyed'], $incident['product_id']);
+            if (!$stmt->execute()) {
+                logError("Failed to update products quantity", $stmt);
+                throw new Exception("Failed to update products quantity");
+            }
+
+            // Calculate new quantity for units update
+            $new_quantity = $current_quantity - $incident['quantity_destroyed'];
+            
+            // Update units table
             $stmt = $conn->prepare("UPDATE units SET available_units = per_single_quantity * ? WHERE product_id = ?");
-            $stmt->bind_param("di", $current_quantity, $incident['product_id']);
+            $stmt->bind_param("di", $new_quantity, $incident['product_id']);
             if (!$stmt->execute()) {
                 logError("Failed to update available units", $stmt);
                 throw new Exception("Failed to update available units");
             }
 
+            // Log quantity destroyed
             $stmt = $conn->prepare("INSERT INTO quantity_destroyed (created_by, company_id, product_id, name, quantity_destroyed, date_destroyed) VALUES (?, ?, ?, ?, ?, NOW())");
             $stmt->bind_param('iiisi', $created_by, $company_id, $incident['product_id'], $incident['name'], $incident['quantity_destroyed']);
             if (!$stmt->execute()) {
@@ -57,6 +69,7 @@ try {
             }
             $qnt_dstr_id = $stmt->insert_id;
 
+            // Record transaction
             $amount = $buying_price * $incident['quantity_destroyed'];
             $stmt = $conn->prepare("INSERT INTO transactions (transType_id, company_id, created_by, transaction_type, amount, description, date_made) VALUES (?, ?, ?, 'destruction', ?, 'Destruction loss', NOW())");
             $stmt->bind_param('iiid', $qnt_dstr_id, $company_id, $created_by, $amount);
@@ -66,6 +79,8 @@ try {
             }
 
         } elseif ($incident['unit_type'] === 'unit') {
+
+            // Get unit data
             $stmt = $conn->prepare("SELECT per_single_quantity, buying_price, product_id FROM units WHERE unit_id = ?");
             $stmt->bind_param("i", $incident['unit_id']);
             if (!$stmt->execute()) {
@@ -81,13 +96,7 @@ try {
 
             $quantity_reduction = $incident['units_destroyed'] / $unit_data['per_single_quantity'];
 
-            $stmt = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE product_id = ?");
-            $stmt->bind_param("di", $quantity_reduction, $incident['product_id']);
-            if (!$stmt->execute()) {
-                logError("Failed to update product quantity (unit type)", $stmt);
-                throw new Exception("Failed to update product quantity (unit type)");
-            }
-
+            // Get current stock
             $stmt = $conn->prepare("SELECT quantity FROM products WHERE product_id = ?");
             $stmt->bind_param("i", $incident['product_id']);
             if (!$stmt->execute()) {
@@ -98,13 +107,30 @@ try {
             $row = $result->fetch_assoc();
             $current_quantity = $row['quantity'];
 
+            if ($quantity_reduction > $current_quantity) {
+                throw new Exception("Cannot destroy more quantity than available in stock (unit).");
+            }
+
+            // Reduce product quantity
+            $stmt = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE product_id = ?");
+            $stmt->bind_param("di", $quantity_reduction, $incident['product_id']);
+            if (!$stmt->execute()) {
+                logError("Failed to update product quantity (unit type)", $stmt);
+                throw new Exception("Failed to update product quantity (unit type)");
+            }
+
+            // Calculate new quantity for units update
+            $new_quantity = $current_quantity - $quantity_reduction;
+            
+            // Update units table
             $stmt = $conn->prepare("UPDATE units SET available_units = per_single_quantity * ? WHERE product_id = ?");
-            $stmt->bind_param("di", $current_quantity, $incident['product_id']);
+            $stmt->bind_param("di", $new_quantity, $incident['product_id']);
             if (!$stmt->execute()) {
                 logError("Failed to update available units (unit type)", $stmt);
                 throw new Exception("Failed to update available units (unit type)");
             }
 
+            // Log units destroyed
             $stmt = $conn->prepare("INSERT INTO units_destroyed (created_by, company_id, unit_id, product_id, name, units_destroyed, date_destroyed) VALUES (?, ?, ?, ?, ?, ?, NOW())");
             $stmt->bind_param('iiiisi', $created_by, $company_id, $incident['unit_id'], $incident['product_id'], $incident['name'], $incident['units_destroyed']);
             if (!$stmt->execute()) {
@@ -113,6 +139,7 @@ try {
             }
             $unt_dstr_id = $stmt->insert_id;
 
+            // Record transaction
             $amount = $unit_data['buying_price'] * $incident['units_destroyed'];
             $stmt = $conn->prepare("INSERT INTO transactions (transType_id, company_id, created_by, transaction_type, amount, description, date_made) VALUES (?, ?, ?, 'destruction', ?, 'Destruction loss', NOW())");
             $stmt->bind_param('iiid', $unt_dstr_id, $company_id, $created_by, $amount);

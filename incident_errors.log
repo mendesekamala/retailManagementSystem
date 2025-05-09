@@ -1,2 +1,7 @@
 [2025-04-25 05:32:09] Failed to insert into transactions | MySQL Error: Column 'description' cannot be null
 [2025-04-25 05:32:09] Transaction rolled back due to error: Failed to insert into transactions
+[2025-05-02 17:23:09] Transaction rolled back due to error: Cannot destroy more quantity than available in stock (whole).
+[2025-05-02 18:21:54] Transaction rolled back due to error: Cannot destroy more quantity than available in stock (whole).
+[2025-05-02 18:31:02] Transaction rolled back due to error: Cannot destroy more quantity than available in stock (whole).
+[2025-05-02 18:34:16] Transaction rolled back due to error: Cannot destroy more quantity than available in stock (whole).
+[2025-05-02 18:34:25] Transaction rolled back due to error: Cannot destroy more quantity than available in stock (whole).

@@ -4,7 +4,6 @@ include 'db_connection.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-
 if (!$data) {
     echo json_encode(["status" => "error", "message" => "Invalid data!"]);
     exit;
@@ -14,6 +13,7 @@ $product_id = $data['product_id'];
 $quantity = $data['quantity'];
 $buying_price = $data['buying_price'];
 $selling_price = $data['selling_price'];
+$supplier_name = $data['supplier_name'] ?? null;
 $company_id = $_SESSION['company_id'];
 $created_by = $_SESSION['user_id'];
 $grandTotal = $data['grandTotal'];
@@ -40,24 +40,22 @@ try {
         $available_units = $unit['available_units'];
         $per_single_quantity = $unit['per_single_quantity'];
 
-        // Calculate new available units
         $units_to_add = $per_single_quantity * $quantity;
         $new_available_units = $available_units + $units_to_add;
 
-        // Update the units table
         $update_units_sql = "UPDATE units SET available_units = ? WHERE unit_id = ?";
         $update_units_stmt = $conn->prepare($update_units_sql);
         $update_units_stmt->bind_param("di", $new_available_units, $unit_id);
         $update_units_stmt->execute();
     }
 
-    // Insert purchase record
-    $insert_purchase_sql = "INSERT INTO purchases_items (product_id, quantity, buying_price, selling_price, total, date_made, company_id, created_by) 
-    VALUES (?, ?, ?, ?, ?, NOW(), ?, ?)";
+    // Insert purchase record with supplier name
+    $insert_purchase_sql = "INSERT INTO purchases_items (product_id, quantity, buying_price, selling_price, total, date_made, company_id, created_by, supplier_name) 
+    VALUES (?, ?, ?, ?, ?, NOW(), ?, ?, ?)";
     $stmt = $conn->prepare($insert_purchase_sql);
-    $stmt->bind_param("iidddii", $product_id, $quantity, $buying_price, $selling_price, $grandTotal, $company_id, $created_by);
+    $stmt->bind_param("iidddiis", $product_id, $quantity, $buying_price, $selling_price, $grandTotal, $company_id, $created_by, $supplier_name);
     $stmt->execute();
-    $purchase_item_id = $conn->insert_id; // This is your transType_id
+    $purchase_item_id = $conn->insert_id;
 
     // Insert transaction with transType_id as purchase_item_id
     $transaction_sql = "INSERT INTO transactions (transaction_type, transType_id, amount, company_id, created_by, date_made, description) 
@@ -67,6 +65,22 @@ try {
     $stmt->execute();
     $transaction_id = $conn->insert_id;
 
+    // Check for debt payment and record it
+    $debtAmount = 0;
+    foreach ($paymentMethods as $payment) {
+        if (strtolower($payment['method']) === 'debt') {
+            $debtAmount = $payment['amount'];
+            break;
+        }
+    }
+
+    if ($debtAmount > 0) {
+        $insert_debt_sql = "INSERT INTO debt_payments (company_id, created_by, transaction_id, total, name) 
+                            VALUES (?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($insert_debt_sql);
+        $stmt->bind_param("iiids", $company_id, $created_by, $transaction_id, $debtAmount, $supplier_name);
+        $stmt->execute();
+    }
 
     // Fetch current money values for the company
     $fetch_money_sql = "SELECT * FROM money WHERE company_id = ?";
@@ -83,22 +97,25 @@ try {
 
     // Insert payment methods used & Deduct money from respective accounts
     foreach ($paymentMethods as $payment) {
-        $method = str_replace(" ", "_", $payment['method']); // Convert method to match column name
+        $method = str_replace(" ", "_", $payment['method']);
         $amount = $payment['amount'];
 
         if (!isset($money_data[$method])) {
             throw new Exception("Invalid payment method: " . $payment['method']);
         }
 
+        // Skip deduction for debt payments
+        if (strtolower($payment['method']) === 'debt') {
+            continue;
+        }
+
         if ($money_data[$method] < $amount) {
             throw new Exception("Insufficient balance in " . $payment['method']);
         }
 
-        // Deduct the amount
         $new_balance = $money_data[$method] - $amount;
-        $money_data[$method] = $new_balance; // Update for later usage
+        $money_data[$method] = $new_balance;
 
-        // Insert into methods_used table
         $insert_method_sql = "INSERT INTO methods_used (transaction_id, payment_method, partial_amount, total_amount) 
                               VALUES (?, ?, ?, ?)";
         $stmt = $conn->prepare($insert_method_sql);
@@ -122,7 +139,6 @@ try {
     );
     $stmt->execute();
 
-    // Commit the transaction
     $conn->commit();
     echo json_encode(["status" => "success", "message" => "Transaction completed successfully!"]);
 
@@ -130,4 +146,3 @@ try {
     $conn->rollback();
     echo json_encode(["status" => "error", "message" => "Transaction failed! Error: " . $e->getMessage()]);
 }
-?>

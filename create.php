@@ -35,25 +35,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // Insert product into database
-    $sql = "INSERT INTO products (name, quantified, under_stock_reminder, buying_price, selling_price, quantity, created_by, company_id, image_path) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-    $stmt = $conn->prepare($sql);
+    // Before inserting new peroduct Check if product with same name (case-insensitive) already exists for this company
+    $check_sql = "SELECT product_id FROM products WHERE LOWER(name) = LOWER(?) AND company_id = ?";
+    $check_stmt = $conn->prepare($check_sql);
+    $check_stmt->bind_param("si", $name, $company_id);
+    $check_stmt->execute();
+    $check_stmt->store_result();
 
-    if ($stmt) {
-        $stmt->bind_param("ssdddiiis", $name, $quantified_as, $under_stock_reminder, $buying_price, $selling_price, $quantity, $created_by, $company_id, $image_path);
+    if ($check_stmt->num_rows > 0) {
+        $message = "Product you're trying to add already exists!";
+        $message_type = "error";
+    } else {
+        // Insert product into database
+        $sql = "INSERT INTO products (name, quantified, under_stock_reminder, buying_price, selling_price, quantity, created_by, company_id, image_path) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($sql);
 
-        if ($stmt->execute()) {
-            $message = "Product added successfully!";
-            $message_type = "success";
+        if ($stmt) {
+            $stmt->bind_param("ssdddiiis", $name, $quantified_as, $under_stock_reminder, $buying_price, $selling_price, $quantity, $created_by, $company_id, $image_path);
+
+            if ($stmt->execute()) {
+                $message = "Product added successfully!";
+                $message_type = "success";
+            } else {
+                $message = "Error: " . $stmt->error;
+                $message_type = "error";
+            }
         } else {
-            $message = "Error: " . $stmt->error;
+            $message = "Error in preparing statement: " . $conn->error;
             $message_type = "error";
         }
-    } else {
-        $message = "Error in preparing statement: " . $conn->error;
-        $message_type = "error";
     }
+
+    $check_stmt->close();
+
 }
 ?>
 
