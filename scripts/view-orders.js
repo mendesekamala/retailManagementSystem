@@ -52,7 +52,9 @@ document.addEventListener('DOMContentLoaded', function() {
         startDate.setDate(endDate.getDate() - parseInt(days));
 
         const startDateStr = startDate.toISOString().split('T')[0];
+        endDate.setDate(endDate.getDate() + 1); // Include full end date
         const endDateStr = endDate.toISOString().split('T')[0];
+
 
         fetch(`api/get_orders.php?start_date=${startDateStr}&end_date=${endDateStr}`)
             .then(response => {
@@ -89,10 +91,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function prepareChartData(orders) {
         const dateGroups = {};
-
+    
         if (!Array.isArray(orders)) return;
-
+    
         orders.forEach(order => {
+            // Skip cancelled orders for chart calculations only
+            if (order.status === 'cancelled') return;
+            
             let date;
             try {
                 date = order.time.split(' ')[0];
@@ -100,23 +105,23 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.error('Error parsing order date', order);
                 return;
             }
-
+    
             if (!dateGroups[date]) {
                 dateGroups[date] = { revenue: 0, profit: 0, count: 0 };
             }
-
+    
             const revenue = parseFloat(order.total) || 0;
             const profit = parseFloat(order.profit) || 0;
-
+    
             dateGroups[date].revenue += revenue;
             dateGroups[date].profit += profit;
             dateGroups[date].count++;
         });
-
+    
         const dates = Object.keys(dateGroups).sort();
         const revenueData = dates.map(date => dateGroups[date].revenue);
         const profitData = dates.map(date => dateGroups[date].profit);
-
+    
         initCharts(dates, revenueData, profitData);
     }
 
@@ -259,3 +264,4 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
+

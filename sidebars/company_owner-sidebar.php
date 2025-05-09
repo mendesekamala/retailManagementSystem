@@ -3,6 +3,11 @@
 
 <div class="sidebar">
 
+    <!-- Add close button at the top of sidebar -->
+    <div class="sidebar-close" id="sidebarClose">
+        <i class='bx bx-x'></i>
+    </div>
+
     <div class="logo-details">
         <a href=""> <i class='bx bx-store'></i> </a>
         <span class="logo_name">Chiades Co</span>

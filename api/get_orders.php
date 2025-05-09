@@ -9,7 +9,7 @@ $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-7 days'));
 $endDate = $_GET['end_date'] ?? date('Y-m-d');
 
 try {
-    // Fetch orders within date range
+    // Fetch ALL orders within date range (including cancelled)
     $query = "
         SELECT 
             order_id, 
@@ -35,7 +35,7 @@ try {
     $result = $stmt->get_result();
     $orders = $result->fetch_all(MYSQLI_ASSOC);
 
-    // Calculate summary statistics with NULL handling
+    // Calculate summary statistics EXCLUDING cancelled orders
     $summaryQuery = "
         SELECT 
             COUNT(*) as total_orders,
@@ -45,7 +45,8 @@ try {
         FROM 
             orders 
         WHERE 
-            DATE(time) BETWEEN ? AND ?
+            time >= ? AND time < DATE_ADD(?, INTERVAL 1 DAY)
+            AND status != 'cancelled'
     ";
 
     $summaryStmt = $conn->prepare($summaryQuery);
@@ -61,8 +62,8 @@ try {
     // Return JSON response
     echo json_encode([
         'success' => true,
-        'orders' => $orders,
-        'summary' => $summary
+        'orders' => $orders,          // Includes all orders for table display
+        'summary' => $summary         // Excludes cancelled orders in calculations
     ]);
 
 } catch (Exception $e) {
@@ -76,3 +77,5 @@ try {
 // Close connection
 $conn->close();
 ?>
+
+

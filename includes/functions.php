@@ -77,37 +77,55 @@ function getProfitData($conn, $company_id, $period = 'week') {
     return $result->fetch_all(MYSQLI_ASSOC);
 }
 
-function getRecentTransactions($conn, $company_id, $type = null, $limit = 15) {
-    $where = "WHERE company_id = ?";
+function getTotalTransactionsCount($conn, $company_id, $type_filter = null) {
+    $query = "SELECT COUNT(*) as total FROM transactions WHERE company_id = ?";
     $params = [$company_id];
     
-    if ($type) {
-        $where .= " AND transaction_type = ?";
-        $params[] = $type;
+    if ($type_filter) {
+        $query .= " AND transaction_type = ?";
+        $params[] = $type_filter;
     }
     
-    $sql = "SELECT 
-                transaction_id,
-                transaction_type,
-                amount,
-                description,
-                date_made
-            FROM transactions
-            $where
-            ORDER BY date_made DESC
-            LIMIT ?";
+    $stmt = $conn->prepare($query);
     
-    $stmt = $conn->prepare($sql);
-    $limit_param = $limit;
-    
-    if ($type) {
-        $stmt->bind_param("isi", $company_id, $type, $limit_param);
-    } else {
-        $stmt->bind_param("ii", $company_id, $limit_param);
-    }
+    // Bind parameters dynamically
+    $types = str_repeat('s', count($params));
+    $stmt->bind_param($types, ...$params);
     
     $stmt->execute();
     $result = $stmt->get_result();
-    return $result->fetch_all(MYSQLI_ASSOC);
+    $row = $result->fetch_assoc();
+    return $row['total'] ?? 0;
+}
+
+function getRecentTransactions($conn, $company_id, $type_filter = null, $page = 1, $itemsPerPage = 10) {
+    $offset = ($page - 1) * $itemsPerPage;
+    $query = "SELECT * FROM transactions WHERE company_id = ?";
+    $params = [$company_id];
+    
+    if ($type_filter) {
+        $query .= " AND transaction_type = ?";
+        $params[] = $type_filter;
+    }
+    
+    $query .= " ORDER BY date_made DESC LIMIT ? OFFSET ?";
+    $params[] = $itemsPerPage;
+    $params[] = $offset;
+    
+    $stmt = $conn->prepare($query);
+    
+    // Bind parameters dynamically
+    $types = str_repeat('s', count($params));
+    $stmt->bind_param($types, ...$params);
+    
+    $stmt->execute();
+    $result = $stmt->get_result();
+    
+    $transactions = [];
+    while ($row = $result->fetch_assoc()) {
+        $transactions[] = $row;
+    }
+    
+    return $transactions;
 }
 ?>

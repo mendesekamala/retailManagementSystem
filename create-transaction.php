@@ -1,6 +1,6 @@
 <?php
 session_start();
-include 'db_connection.php'; // Database connection file
+include 'db_connection.php';
 
 // Fetch logged-in company ID
 $company_id = $_SESSION['company_id'];
@@ -18,132 +18,149 @@ $balances = mysqli_fetch_assoc($money_result);
 // Fetch last 5 transactions
 $transactions_query = "SELECT transaction_id, transaction_type, date_made, amount FROM transactions WHERE company_id = $company_id ORDER BY date_made DESC LIMIT 5";
 $transactions_result = mysqli_query($conn, $transactions_query);
-
-
-// Fetch last 30 transactions for pie chart
-$chart_query = "    SELECT m.payment_method, COUNT(*) AS count 
-                    FROM methods_used m
-                    JOIN (
-                    SELECT transaction_id FROM transactions 
-                    WHERE company_id = $company_id 
-                    ORDER BY date_made DESC 
-                    LIMIT 30
-                    ) t ON m.transaction_id = t.transaction_id
-                    GROUP BY m.payment_method
-                ";
-$chart_result = mysqli_query($conn, $chart_query);
-
-if (!$chart_result) {
-    die("Query failed: " . mysqli_error($conn)); // Display the SQL error
-}
-$chart_data = [];
-while ($row = mysqli_fetch_assoc($chart_result)) {
-    $chart_data[$row['payment_method']] = $row['count'];
-}
-
-// Fetch last 30 transactions for pie chart
-// $chart_query = "SELECT payment_method, COUNT(*) as count FROM methods_used WHERE transaction_id IN (SELECT transaction_id FROM transactions WHERE company_id = $company_id ORDER BY date_made DESC LIMIT 30) GROUP BY payment_method";
-// $chart_result = mysqli_query($conn, $chart_query);
-// $chart_data = [];
-// while ($row = mysqli_fetch_assoc($chart_result)) {
-//     $chart_data[$row['payment_method']] = $row['count'];
-// }
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Transactions</title>
-    <link rel="stylesheet" href="css/sidebar.css">
-    <link rel="stylesheet" href="css/create-transactions.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Transactions Dashboard</title>
+    <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+    <link href="css/sidebar.css" rel="stylesheet">
+    <link href="css/create-transactions.css" rel="stylesheet">
+    <style>
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
+        }
+        
+        /* Animation classes */
+        .fade-in {
+            animation: fadeIn 0.8s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
 </head>
 
 <?php include('sidebar.php'); ?>
 
 <body>
-    <div class="container">
-        <div class="top-section">
-            <?php
-            $colors = ['cash' => 'yellow', 'NMB' => 'orange', 'CRDB' => 'green', 'NBC' => 'purple', 'mpesa' => 'red', 'airtel_money' => 'red', 'tigo_pesa' => 'blue', 'halo_pesa' => 'orange', 'azam_pesa' => 'blue', 'debt' => 'red'];
-            $count = 0;
-            echo '<div class="tiles-container">';
-            foreach ($methods as $method => $active) {
-                if ($active == 'yes' && isset($balances[$method])) {
-                    echo "<div class='tile' style='border-bottom: 4px solid {$colors[$method]};'>";
-                    echo "<div class='balance'>" . number_format($balances[$method], 2) . "</div>";
-                    echo "<div class='method-name'>" . strtoupper(str_replace('_', ' ', $method)) . "</div>";
-                    echo "</div>";
-                    $count++;
-                }
-            }
-            echo '</div>';
-            ?>
-        </div>
-        <div class="bottom-section">
-            <div class="left-panel">
-                <h2>Record New Transaction</h2>
-                <form>
-                    <label>Transaction Type</label>
-                    <select id="transactionType">
-                        <option value="expenses">Expenses</option>
-                        <option value="drawings">Drawings</option>
-                        <option value="add_capital">Add Capital</option>
-                    </select>
-                    <label>Description</label>
-                    <input type="text" id="transactionDescription" placeholder="Enter description">
-                    <label>Amount</label>
-                    <input type="number" id="transactionAmount" step="0.01" placeholder="Enter amount">
-                    <button type="button" onclick="openPaymentModal()">Record Transaction</button>
-                </form>
-            </div>
-            <div class="right-panel">
+    <div class="dashboard-container">
+        <header class="dashboard-header">
+            <h1>Transactions Dashboard</h1>
+        </header>
+
+        <!-- Scrollable balance tiles -->
+        <div class="balances-scroller">
+            <div class="balances-container">
+                <?php
+                $colors = [
+                    'cash' => 'bg-blue',
+                    'NMB' => 'bg-orange',
+                    'CRDB' => 'bg-green',
+                    'NBC' => 'bg-purple',
+                    'mpesa' => 'bg-red',
+                    'airtel_money' => 'bg-red',
+                    'tigo_pesa' => 'bg-blue',
+                    'halo_pesa' => 'bg-orange',
+                    'azam_pesa' => 'bg-blue',
+                    'debt' => 'bg-red'
+                ];
                 
-                <div class="transactions-list">
-                    <h3>Last 5 Transactions</h3>
-                    <table>
-                        <tr>
-                            <th>ID</th>
-                            <th>Type</th>
-                            <th>Date</th>
-                            <th>Amount</th>
-                        </tr>
-                        <?php while ($row = mysqli_fetch_assoc($transactions_result)) { ?>
-                        <tr>
-                            <td><?= $row['transaction_id'] ?></td>
-                            <td><?= $row['transaction_type'] ?></td>
-                            <td><?= $row['date_made'] ?></td>
-                            <td><?= number_format($row['amount'], 2) ?></td>
-                        </tr>
-                        <?php } ?>
-                    </table>
+                $icons = [
+                    'cash' => 'bx-money',
+                    'NMB' => 'bx-credit-card',
+                    'CRDB' => 'bx-credit-card',
+                    'NBC' => 'bx-credit-card',
+                    'mpesa' => 'bx-mobile',
+                    'airtel_money' => 'bx-mobile',
+                    'tigo_pesa' => 'bx-mobile',
+                    'halo_pesa' => 'bx-mobile',
+                    'azam_pesa' => 'bx-mobile',
+                    'debt' => 'bx-receipt'
+                ];
+                
+                foreach ($methods as $method => $active) {
+                    if ($active == 'yes' && isset($balances[$method])) {
+                        echo '<div class="balance-card fade-in">';
+                        echo '<div class="balance-icon ' . $colors[$method] . '">';
+                        echo '<i class="bx ' . $icons[$method] . '"></i>';
+                        echo '</div>';
+                        echo '<div class="balance-info">';
+                        echo '<h3>' . strtoupper(str_replace('_', ' ', $method)) . '</h3>';
+                        echo '<span>' . number_format($balances[$method], 2) . '</span>';
+                        echo '</div>';
+                        echo '</div>';
+                    }
+                }
+                ?>
+            </div>
+        </div>
+
+        <div class="main-content-section">
+            <div class="form-section">
+                <div class="form-container slide-in-left">
+                    <h2>Record New Transaction</h2>
+                    <form class="transaction-form">
+                        <div class="form-group">
+                            <label>Transaction Type</label>
+                            <select id="transactionType" class="form-control">
+                                <option value="expenses">Expenses</option>
+                                <option value="drawings">Drawings</option>
+                                <option value="add_capital">Add Capital</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <input type="text" id="transactionDescription" class="form-control" placeholder="Enter description">
+                        </div>
+                        <div class="form-group">
+                            <label>Amount</label>
+                            <input type="number" id="transactionAmount" class="form-control" step="0.01" placeholder="Enter amount">
+                        </div>
+                        <button type="button" class="btn-primary" onclick="openPaymentModal()">
+                            Record Transaction
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="recent-transactions-section">
+                <div class="table-container">
+                    <h2>Recent Transactions</h2>
+                    <div class="table-responsive">
+                        <table id="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Type</th>
+                                    <th>Date</th>
+                                    <th>Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php while ($row = mysqli_fetch_assoc($transactions_result)) { ?>
+                                <tr>
+                                    <td><?= $row['transaction_id'] ?></td>
+                                    <td><?= ucfirst(str_replace('_', ' ', $row['transaction_type'])) ?></td>
+                                    <td><?= date('M d, Y', strtotime($row['date_made'])) ?></td>
+                                    <td><?= number_format($row['amount'], 2) ?></td>
+                                </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-    <script src="transactions.js"></script>
+
     <script>
-        const chartData = <?php echo json_encode($chart_data); ?>;
-        const ctx = document.getElementById('paymentChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'doughnut',
-            data: {
-                labels: Object.keys(chartData),
-                datasets: [{
-                    data: Object.values(chartData),
-                    backgroundColor: ['yellow', 'orange', 'green', 'purple', 'red', 'blue', 'cyan', 'pink']
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'top' }
-                }
-            }
-        });
-
-
         function openPaymentModal() {
             let transactionType = document.getElementById('transactionType').value;
             let description = document.getElementById('transactionDescription').value;
@@ -161,13 +178,10 @@ while ($row = mysqli_fetch_assoc($chart_result)) {
             };
 
             localStorage.setItem('transactionData', JSON.stringify(transactionData));
-
-            // Call the function from the JS file that sets grandTotal
             openModal(parseFloat(amount));
-
         }
-
     </script>
-<?php include('payment-modal_create-transaction.php'); ?>
+    
+    <?php include('payment-modal_create-transaction.php'); ?>
 </body>
 </html>

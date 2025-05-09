@@ -10,6 +10,7 @@ session_start();
     <title>Orders Dashboard</title>
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <link href="css/orders.css" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
         .loading-overlay {
             position: fixed;
@@ -34,6 +35,10 @@ session_start();
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
+        }
+        html, body {
+            overflow-x: hidden;
+            max-width: 100%;
         }
     </style>
 </head>
