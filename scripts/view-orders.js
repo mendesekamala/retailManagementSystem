@@ -1,80 +1,236 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // State variables
     let currentPage = 1;
     const itemsPerPage = 10;
-    let allOrders = [];
-    let filteredOrders = [];
+    let currentStartDate = '';
+    let currentEndDate = '';
+    let currentSearchTerm = '';
+    let currentStatusFilter = '';
+    let dateRangePicker;
 
+    // Initialize the dashboard
     initDashboard();
 
-    document.querySelectorAll('.date-filter .btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.date-filter .btn').forEach(b => b.classList.remove('active'));
-            this.classList.add('active');
-            const days = this.dataset.days;
-            loadDashboardData(days);
-        });
-    });
+    // Event listeners
+    setupEventListeners();
 
-    document.getElementById('order-search').addEventListener('input', function() {
-        filterOrders();
-    });
-
-    document.getElementById('status-filter').addEventListener('change', function() {
-        filterOrders();
-    });
-
-    document.getElementById('prev-page').addEventListener('click', function() {
-        if (currentPage > 1) {
-            currentPage--;
-            renderOrdersTable();
-        }
-    });
-
-    document.getElementById('next-page').addEventListener('click', function() {
-        const totalPages = Math.ceil(filteredOrders.length / itemsPerPage);
-        if (currentPage < totalPages) {
-            currentPage++;
-            renderOrdersTable();
-        }
-    });
-
-    document.querySelector('.date-filter .btn[data-days="7"]').click();
+    // Load initial data (last 7 days by default)
+    loadDashboardData('7');
 
     function initDashboard() {
         initCharts([], [], []);
     }
 
+    function setupEventListeners() {
+        // Date filter buttons (excluding custom range)
+        document.querySelectorAll('.date-filter .btn:not(#custom-range)').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.date-filter .btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const days = this.dataset.days;
+                loadDashboardData(days);
+            });
+        });
+
+        // Custom range button
+        document.getElementById('custom-range').addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            showCustomDateRangePicker();
+        });
+
+        // Search input
+        document.getElementById('order-search').addEventListener('input', function() {
+            currentSearchTerm = this.value;
+            currentPage = 1;
+            loadOrders();
+        });
+
+        // Status filter
+        document.getElementById('status-filter').addEventListener('change', function() {
+            currentStatusFilter = this.value;
+            currentPage = 1;
+            loadOrders();
+        });
+
+        // Pagination
+        document.getElementById('prev-page').addEventListener('click', function() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadOrders();
+            }
+        });
+
+        document.getElementById('next-page').addEventListener('click', function() {
+            currentPage++;
+            loadOrders();
+        });
+    }
+
+    function showCustomDateRangePicker() {
+        // Create or show the date picker container
+        let pickerContainer = document.getElementById('date-range-picker');
+        if (!pickerContainer) {
+            pickerContainer = document.createElement('div');
+            pickerContainer.id = 'date-range-picker';
+            pickerContainer.className = 'date-range-picker';
+            pickerContainer.innerHTML = `
+                <div class="date-range-inputs">
+                    <input type="text" id="start-date-input" placeholder="Start Date" readonly>
+                    <span>to</span>
+                    <input type="text" id="end-date-input" placeholder="End Date" readonly>
+                </div>
+                <div class="date-range-buttons">
+                    <button id="cancel-date-range" class="btn">Cancel</button>
+                    <button id="apply-date-range" class="btn">Apply</button>
+                </div>
+            `;
+            document.body.appendChild(pickerContainer);
+            
+            // Close picker when clicking outside
+            document.addEventListener('click', function outsideClickListener(e) {
+                if (!pickerContainer.contains(e.target) && e.target.id !== 'custom-range') {
+                    pickerContainer.style.display = 'none';
+                }
+            });
+            
+            // Initialize flatpickr
+            const startDateInput = document.getElementById('start-date-input');
+            const endDateInput = document.getElementById('end-date-input');
+            
+            flatpickr(startDateInput, {
+                dateFormat: "Y-m-d",
+                maxDate: new Date(),
+                defaultDate: currentStartDate || new Date(),
+                onChange: function(selectedDates, dateStr) {
+                    if (selectedDates.length > 0) {
+                        endDateInput._flatpickr.set('minDate', dateStr);
+                    }
+                }
+            });
+            
+            flatpickr(endDateInput, {
+                dateFormat: "Y-m-d",
+                maxDate: new Date(),
+                defaultDate: currentEndDate || new Date()
+            });
+            
+            // Handle apply button click
+            document.getElementById('apply-date-range').addEventListener('click', function() {
+                const startDate = startDateInput.value;
+                const endDate = endDateInput.value;
+                
+                if (startDate && endDate) {
+                    // Remove active class from all date filter buttons
+                    document.querySelectorAll('.date-filter .btn').forEach(b => b.classList.remove('active'));
+                    
+                    // Set custom dates and load data
+                    currentStartDate = startDate;
+                    currentEndDate = endDate;
+                    currentPage = 1;
+                    
+                    // Load both summary data and orders
+                    Promise.all([
+                        fetchSummaryData(currentStartDate, currentEndDate),
+                        loadOrders()
+                    ]).then(() => {
+                        pickerContainer.style.display = 'none';
+                    }).catch(error => {
+                        console.error('Error loading data:', error);
+                        pickerContainer.style.display = 'none';
+                    });
+                }
+            });
+            
+            // Handle cancel button click
+            document.getElementById('cancel-date-range').addEventListener('click', function() {
+                pickerContainer.style.display = 'none';
+            });
+        }
+        
+        // Toggle visibility
+        pickerContainer.style.display = pickerContainer.style.display === 'none' ? 'block' : 'none';
+    }
+
     function loadDashboardData(days) {
         showLoading(true);
 
-        const endDate = new Date();
-        const startDate = new Date();
-        startDate.setDate(endDate.getDate() - parseInt(days));
+        // Only set dates if it's a predefined range (not custom)
+        if (days && days !== 'custom') {
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - parseInt(days));
 
-        const startDateStr = startDate.toISOString().split('T')[0];
-        endDate.setDate(endDate.getDate() + 1); // Include full end date
-        const endDateStr = endDate.toISOString().split('T')[0];
+            currentStartDate = startDate.toISOString().split('T')[0];
+            currentEndDate = endDate.toISOString().split('T')[0];
+        }
+        
+        // Make sure we have valid dates
+        if (!currentStartDate || !currentEndDate) {
+            // Default to last 7 days if no dates are set
+            const endDate = new Date();
+            const startDate = new Date();
+            startDate.setDate(endDate.getDate() - 7);
 
+            currentStartDate = startDate.toISOString().split('T')[0];
+            currentEndDate = endDate.toISOString().split('T')[0];
+        }
+        
+        // Load both summary data and orders
+        Promise.all([
+            fetchSummaryData(currentStartDate, currentEndDate),
+            loadOrders()
+        ]).then(() => {
+            showLoading(false);
+        }).catch(error => {
+            console.error('Error loading data:', error);
+            alert('Failed to load data. Check console for details.');
+            showLoading(false);
+        });
+    }
 
-        fetch(`api/get_orders.php?start_date=${startDateStr}&end_date=${endDateStr}`)
+    function fetchSummaryData(startDate, endDate) {
+        return fetch(`api/get_orders.php?start_date=${startDate}&end_date=${endDate}&page=1&per_page=${itemsPerPage}`)
             .then(response => {
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 return response.json();
             })
             .then(data => {
                 if (!data.success) throw new Error('API returned unsuccessful response');
-
-                allOrders = data.orders || [];
-                filteredOrders = [...allOrders];
-
                 updateSummaryCards(data.summary);
-                prepareChartData(allOrders);
-                renderOrdersTable();
+                prepareChartData(data.orders);
+            });
+    }
+
+    function loadOrders() {
+        showLoading(true);
+        
+        let url = `api/get_orders.php?start_date=${currentStartDate}&end_date=${currentEndDate}`;
+        url += `&page=${currentPage}&per_page=${itemsPerPage}`;
+        
+        if (currentSearchTerm) {
+            url += `&search=${encodeURIComponent(currentSearchTerm)}`;
+        }
+        
+        if (currentStatusFilter) {
+            url += `&status=${encodeURIComponent(currentStatusFilter)}`;
+        }
+
+        fetch(url)
+            .then(response => {
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) throw new Error('API returned unsuccessful response');
+                
+                renderOrdersTable(data.orders);
+                updatePagination(data.pagination);
                 showLoading(false);
             })
             .catch(error => {
-                console.error('Error loading data:', error);
-                alert('Failed to load data. Check console for details.');
+                console.error('Error loading orders:', error);
+                alert('Failed to load orders. Check console for details.');
                 showLoading(false);
             });
     }
@@ -187,34 +343,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    function filterOrders() {
-        const searchTerm = document.getElementById('order-search').value.toLowerCase();
-        const statusFilter = document.getElementById('status-filter').value;
-
-        filteredOrders = allOrders.filter(order => {
-            const matchesSearch = 
-                (order.orderNo && order.orderNo.toLowerCase().includes(searchTerm)) ||
-                (order.customer_name && order.customer_name.toLowerCase().includes(searchTerm));
-            const matchesStatus = statusFilter === '' || order.status === statusFilter;
-
-            return matchesSearch && matchesStatus;
-        });
-
-        currentPage = 1;
-        renderOrdersTable();
-    }
-
-    function renderOrdersTable() {
+    function renderOrdersTable(orders) {
         const tableBody = document.querySelector('#orders-table tbody');
         tableBody.innerHTML = '';
 
-        const startIndex = (currentPage - 1) * itemsPerPage;
-        const paginatedOrders = filteredOrders.slice(startIndex, startIndex + itemsPerPage);
-
-        if (paginatedOrders.length === 0) {
+        if (orders.length === 0) {
             tableBody.innerHTML = '<tr><td colspan="7" class="text-center">No orders found</td></tr>';
         } else {
-            paginatedOrders.forEach(order => {
+            orders.forEach(order => {
                 const formattedDate = order.time ? new Date(order.time).toLocaleDateString() : 'N/A';
                 const formattedTotal = order.total ? parseFloat(order.total).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
                 const formattedProfit = order.profit ? parseFloat(order.profit).toLocaleString(undefined, { minimumFractionDigits: 2 }) : '0.00';
@@ -240,15 +376,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 tableBody.appendChild(row);
             });
         }
-
-        updatePagination();
     }
 
-    function updatePagination() {
-        const totalPages = Math.ceil(filteredOrders.length / itemsPerPage) || 1;
-        document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
-        document.getElementById('prev-page').disabled = currentPage <= 1;
-        document.getElementById('next-page').disabled = currentPage >= totalPages;
+    function updatePagination(pagination) {
+        document.getElementById('page-info').textContent = `Page ${pagination.current_page} of ${pagination.total_pages}`;
+        document.getElementById('prev-page').disabled = pagination.current_page <= 1;
+        document.getElementById('next-page').disabled = pagination.current_page >= pagination.total_pages;
     }
 
     function showLoading(show) {
@@ -264,4 +397,3 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 });
-

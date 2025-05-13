@@ -2,26 +2,21 @@
 session_start();
 include 'db_connection.php';
 
-// Ensure the user is logged in by checking if `company_id` is in session
 if (!isset($_SESSION['company_id'])) {
     header("Location: login.php");
     exit();
 }
 
-$companyId = $_SESSION['company_id'];  // Get company ID from session
-
-// Fetch products with pagination
+$companyId = $_SESSION['company_id'];
 $itemsPerPage = 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $itemsPerPage;
 
-// Get total count for pagination
 $countQuery = "SELECT COUNT(*) AS total FROM products WHERE company_id = $companyId";
 $countResult = mysqli_query($conn, $countQuery);
 $totalItems = mysqli_fetch_assoc($countResult)['total'];
 $totalPages = ceil($totalItems / $itemsPerPage);
 
-// Fetch products alphabetically (non-alphabetical first)
 $query = "SELECT * FROM products WHERE company_id = $companyId 
           ORDER BY 
             CASE WHEN name REGEXP '^[^a-zA-Z]' THEN 0 ELSE 1 END,
@@ -29,42 +24,33 @@ $query = "SELECT * FROM products WHERE company_id = $companyId
           LIMIT $itemsPerPage OFFSET $offset";
 $result = mysqli_query($conn, $query);
 
-// Queries for the tiles
 $underStockQuery = "SELECT COUNT(*) AS under_stock_reminders FROM products WHERE company_id = $companyId AND quantity < under_stock_reminder";
 $zeroQuantityQuery = "SELECT COUNT(*) AS zero_quantity_products FROM products WHERE company_id = $companyId AND quantity = 0";
 $leastSoldQuery = "SELECT COUNT(DISTINCT name) AS least_sold_products FROM order_items WHERE company_id = $companyId GROUP BY name HAVING SUM(quantity) < 5";
 $destroyedProductsQuery = "SELECT COUNT(*) AS most_destroyed_products FROM quantity_destroyed WHERE company_id = $companyId AND quantity_destroyed > 0";
 
-// Execute tile queries
 $underStockResult = $conn->query($underStockQuery)->fetch_assoc()['under_stock_reminders'];
 $zeroQuantityResult = $conn->query($zeroQuantityQuery)->fetch_assoc()['zero_quantity_products'];
 $leastSoldResult = $conn->query($leastSoldQuery)->num_rows;
 $destroyedProductsResult = $conn->query($destroyedProductsQuery)->fetch_assoc()['most_destroyed_products'];
 
-// Queries for the lists
 $mostSoldHighQuantityQuery = "SELECT name, SUM(quantity) AS total_quantity_sold FROM order_items WHERE company_id = $companyId GROUP BY name ORDER BY total_quantity_sold DESC LIMIT 3";
 $mostSoldOrdersQuery = "SELECT name, COUNT(order_id) AS order_count FROM order_items WHERE company_id = $companyId GROUP BY name ORDER BY order_count DESC LIMIT 3";
 
-// Execute list queries
 $mostSoldHighQuantityResult = $conn->query($mostSoldHighQuantityQuery);
 $mostSoldOrdersResult = $conn->query($mostSoldOrdersQuery);
-
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Products Dashboard</title>
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
     <link href="css/sidebar.css" rel="stylesheet">
     <link href="css/products.css" rel="stylesheet">
     <style>
-        html, body {
-            overflow-x: hidden;
-            max-width: 100%;
-        }
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -191,76 +177,10 @@ $mostSoldOrdersResult = $conn->query($mostSoldOrdersQuery);
                     <option value="under-stock">Under Stock</option>
                 </select>
             </div>
-            <div class="table-responsive">
-                <table id="products-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Buying Price</th>
-                            <th>Selling Price</th>
-                            <th>In Stock</th>
-                            <th>Stock Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php while($row = mysqli_fetch_assoc($result)): ?>
-                            <?php
-                                $productId = $row['product_id'];
-                                $quantity = $row['quantity'];
-                                $quantifiedAs = $row['quantified'];
-                                $underStockReminder = $row['under_stock_reminder']; 
-
-                                // Determine stock status
-                                $stockStatus = $quantity < $underStockReminder ? 'under-stock' : 'fine';
-
-                                // Split quantity into whole and decimal parts
-                                $wholeQuantity = floor($quantity);
-                                $decimalQuantity = $quantity - $wholeQuantity;
-
-                                if ($decimalQuantity > 0) {
-                                    // Fetch the unit with the lowest per_single_quantity for the product
-                                    $unitQuery = "
-                                        SELECT name, per_single_quantity, available_units
-                                        FROM units 
-                                        WHERE product_id = $productId AND company_id = $companyId
-                                        ORDER BY per_single_quantity ASC 
-                                        LIMIT 1
-                                    ";
-                                    $unitResult = mysqli_query($conn, $unitQuery);
-                                    $unitRow = mysqli_fetch_assoc($unitResult);
-
-                                    if ($unitRow) {
-                                        // Calculate available units for just the decimal part
-                                        $decimalUnits = $decimalQuantity * $unitRow['per_single_quantity'];
-                                        $decimalUnits = floor($decimalUnits);
-
-                                        // Format: whole quantity + quantified_as + decimal units + unit name
-                                        $quantityDisplay = $wholeQuantity . " " . $quantifiedAs . " and " . $decimalUnits . " " . $unitRow['name'];
-                                    } else {
-                                        // Only display: whole quantity + quantified_as if no units are found
-                                        $quantityDisplay = $wholeQuantity . " " . $quantifiedAs;
-                                    }
-                                } else {
-                                    // If no decimal points, simply display: whole quantity + quantified_as
-                                    $quantityDisplay = $wholeQuantity . " " . $quantifiedAs;
-                                }
-                            ?>
-                            <tr>
-                                <td><?= $row['name']; ?></td>
-                                <td><?= $row['buying_price']; ?></td>
-                                <td><?= $row['selling_price']; ?></td>
-                                <td><?= $quantityDisplay; ?></td>
-                                <td><span class="status-badge status-<?= $stockStatus; ?>"><?= ucfirst($stockStatus); ?></span></td>
-                                <td>
-                                    <a href="edit-product.php?id=<?= $row['product_id']; ?>" class="action-btn view"><i class='bx bx-pencil'></i></a>
-                                    <a href="delete-product.php?id=<?= $row['product_id']; ?>" class="action-btn delete"><i class='bx bx-trash'></i></a>
-                                    <a href="view-create_units.php?id=<?= $row['product_id']; ?>" class="action-btn view"><i class='bx bx-box'></i></a>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
+            <div id="table-container">
+                <div class="table-responsive">
+                    <?php include('products_table.php'); ?>
+                </div>
             </div>
             <div class="pagination">
                 <button id="prev-page" <?= $page <= 1 ? 'disabled' : ''; ?>>
@@ -275,49 +195,60 @@ $mostSoldOrdersResult = $conn->query($mostSoldOrdersQuery);
     </div>
 
     <script>
-        // Pagination functionality
-        document.getElementById('prev-page').addEventListener('click', function() {
-            const currentPage = <?= $page; ?>;
-            if (currentPage > 1) {
-                window.location.href = `products.php?page=${currentPage - 1}`;
-            }
+        let currentPage = <?= $page; ?>;
+        const totalPages = <?= $totalPages; ?>;
+
+        function loadTableContent(page) {
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.className = 'loading-overlay';
+            loadingOverlay.innerHTML = '<div class="spinner"></div>';
+            document.body.appendChild(loadingOverlay);
+
+            fetch(`products_table.php?page=${page}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.querySelector('#table-container .table-responsive').innerHTML = data;
+                    currentPage = page;
+                    updatePagination();
+                    document.body.removeChild(loadingOverlay);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.body.removeChild(loadingOverlay);
+                });
+        }
+
+        function updatePagination() {
+            document.getElementById('prev-page').disabled = currentPage <= 1;
+            document.getElementById('next-page').disabled = currentPage >= totalPages;
+            document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
+        }
+
+        document.getElementById('prev-page').addEventListener('click', () => {
+            if (currentPage > 1) loadTableContent(currentPage - 1);
         });
 
-        document.getElementById('next-page').addEventListener('click', function() {
-            const currentPage = <?= $page; ?>;
-            const totalPages = <?= $totalPages; ?>;
-            if (currentPage < totalPages) {
-                window.location.href = `products.php?page=${currentPage + 1}`;
-            }
+        document.getElementById('next-page').addEventListener('click', () => {
+            if (currentPage < totalPages) loadTableContent(currentPage + 1);
         });
 
-        // Search functionality
         document.getElementById('product-search').addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const rows = document.querySelectorAll('#products-table tbody tr');
-            
+                
             rows.forEach(row => {
                 const productName = row.cells[0].textContent.toLowerCase();
-                if (productName.includes(searchTerm)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                row.style.display = productName.includes(searchTerm) ? '' : 'none';
             });
         });
 
-        // Status filter functionality
         document.getElementById('status-filter').addEventListener('change', function() {
             const status = this.value;
             const rows = document.querySelectorAll('#products-table tbody tr');
-            
+                
             rows.forEach(row => {
                 const rowStatus = row.cells[4].querySelector('.status-badge').className.includes(status);
-                if (status === '' || rowStatus) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+                row.style.display = (status === '' || rowStatus) ? '' : 'none';
             });
         });
     </script>

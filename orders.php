@@ -9,9 +9,23 @@ session_start();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Orders Dashboard</title>
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="css/orders.css" rel="stylesheet">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
+        
+        .flatpickr-calendar {
+            z-index: 1001 !important; /* Make sure it appears above other elements */
+        }
+        .date-range-picker {
+            display: none;
+            position: absolute;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
         .loading-overlay {
             position: fixed;
             top: 0;
@@ -59,44 +73,47 @@ session_start();
             </div>
         </header>
 
-        <div class="summary-cards">
-            <div class="card">
-                <div class="card-icon bg-blue">
-                    <i class='bx bx-receipt'></i>
+        <div class="summary-scroller">
+            <div class="summary-cards">
+                <div class="card">
+                    <div class="card-icon bg-blue">
+                        <i class='bx bx-receipt'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Total Orders</h3>
+                        <span id="total-orders">0</span>
+                    </div>
                 </div>
-                <div class="card-info">
-                    <h3>Total Orders</h3>
-                    <span id="total-orders">0</span>
+                <div class="card">
+                    <div class="card-icon bg-green">
+                        <i class='bx bx-credit-card'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Total Revenue</h3>
+                        <span id="total-revenue">Tsh0.00</span>
+                    </div>
                 </div>
-            </div>
-            <div class="card">
-                <div class="card-icon bg-green">
-                    <i class='bx bx-credit-card'></i>
+                <div class="card">
+                    <div class="card-icon bg-purple">
+                        <i class='bx bx-trending-up'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Avg. Order Value</h3>
+                        <span id="avg-order-value">Tsh0.00</span>
+                    </div>
                 </div>
-                <div class="card-info">
-                    <h3>Total Revenue</h3>
-                    <span id="total-revenue">Tsh0.00</span>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-icon bg-purple">
-                    <i class='bx bx-trending-up'></i>
-                </div>
-                <div class="card-info">
-                    <h3>Avg. Order Value</h3>
-                    <span id="avg-order-value">Tsh0.00</span>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-icon bg-orange">
-                    <i class='bx bx-dollar-circle'></i>
-                </div>
-                <div class="card-info">
-                    <h3>Total Profit</h3>
-                    <span id="total-profit">Tsh0.00</span>
+                <div class="card">
+                    <div class="card-icon bg-orange">
+                        <i class='bx bx-dollar-circle'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Total Profit</h3>
+                        <span id="total-profit">Tsh0.00</span>
+                    </div>
                 </div>
             </div>
         </div>
+        
 
         <div class="charts-section">
             <div class="chart-container">
@@ -150,6 +167,7 @@ session_start();
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="scripts/view-orders.js"></script>
 </body>
 </html>
