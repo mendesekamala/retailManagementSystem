@@ -47,6 +47,13 @@
 
         <li><a href="orders.php"><i class="bx bx-bar-chart"></i> Reports</a></li>
 
+        <li class="dropdown"><a href="#"><i class="bx bx-money"></i> debt payments <i class="bx bx-chevron-right" id="d-arrow"></i></a>
+            <ul>
+                <li class="drops"><a href="debtors.php"> <i class="bx bx-user-voice"></i> debtors</a></li>
+                <li class="drops"><a href="creditors.php"> <i class="bx bx-building-house"></i> creditors</a></li>
+            </ul>
+        </li>
+
         <li class="drops"><a href="user.php"> <i class="bx bx-user-circle"></i>user</a></li>
 
     </ul>

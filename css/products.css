@@ -55,7 +55,8 @@ body {
     gap: 15px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
     transition: transform 0.3s ease;
-    opacity: 0; /* Start invisible for animation */
+    opacity: 0;
+    will-change: transform, opacity;
 }
 
 .card:hover {
@@ -105,7 +106,7 @@ body {
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    opacity: 0; /* Start invisible for animation */
+    opacity: 0;
 }
 
 .chart-container h2 {
@@ -281,7 +282,55 @@ body {
     }
 
     .summary-cards {
-        grid-template-columns: 1fr;
+        display: flex;
+        overflow-x: auto;
+        padding-bottom: 15px;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary) rgba(0,0,0,0.1);
+        -webkit-overflow-scrolling: touch;
+        grid-template-columns: unset;
+        gap: 15px;
+        mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 20%,
+            black 80%,
+            transparent
+        );
+        -webkit-mask-image: linear-gradient(
+            to right,
+            transparent,
+            black 20%,
+            black 80%,
+            transparent
+        );
+    }
+    
+    .summary-cards::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .summary-cards::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.05);
+        border-radius: 10px;
+    }
+    
+    .summary-cards::-webkit-scrollbar-thumb {
+        background-color: var(--primary);
+        border-radius: 10px;
+    }
+    
+    .card {
+        flex: 0 0 80%;
+        min-width: 250px;
+        box-sizing: border-box;
+        /* Ensure card contents stay horizontal */
+        flex-direction: row !important;
+        text-align: left !important;
+    }
+
+    .card-icon {
+        margin-bottom: 0 !important;
     }
 
     .table-controls {
@@ -302,16 +351,12 @@ body {
 }
 
 @media (max-width: 480px) {
-    .card {
-        flex-direction: column;
-        text-align: center;
-    }
-
-    .card-icon {
-        margin-bottom: 10px;
-    }
-
     .dashboard-header h1 {
         font-size: 1.5rem;
     }
+}
+
+/* Animation classes */
+.fall-down {
+    opacity: 1 !important;
 }

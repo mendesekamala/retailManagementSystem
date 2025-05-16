@@ -4,6 +4,22 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET");
 require_once '../db_connection.php';
 
+// Start session if not already started
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Check if user is logged in and has a company_id
+if (!isset($_SESSION['company_id'])) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'Unauthorized access - no company specified'
+    ]);
+    exit();
+}
+
+$company_id = $_SESSION['company_id'];
+
 // Get parameters from query
 $startDate = $_GET['start_date'] ?? date('Y-m-d', strtotime('-7 days'));
 $endDate = $_GET['end_date'] ?? date('Y-m-d');
@@ -16,7 +32,7 @@ try {
     // Calculate offset for pagination
     $offset = ($page - 1) * $itemsPerPage;
     
-    // Base query for orders
+    // Base query for orders - now includes company_id filter
     $query = "
         SELECT 
             order_id, 
@@ -32,11 +48,12 @@ try {
             orders 
         WHERE 
             DATE(time) BETWEEN ? AND ?
+            AND company_id = ?
     ";
     
     // Add search and status filters if provided
-    $params = [$startDate, $endDate];
-    $types = 'ss';
+    $params = [$startDate, $endDate, $company_id];
+    $types = 'ssi';
     
     if (!empty($searchTerm)) {
         $query .= " AND (orderNo LIKE ? OR customer_name LIKE ?)";
@@ -65,10 +82,10 @@ try {
     $result = $stmt->get_result();
     $orders = $result->fetch_all(MYSQLI_ASSOC);
     
-    // Get total count for pagination
-    $countQuery = "SELECT COUNT(*) as total FROM orders WHERE DATE(time) BETWEEN ? AND ?";
-    $countParams = [$startDate, $endDate];
-    $countTypes = 'ss';
+    // Get total count for pagination - now includes company_id filter
+    $countQuery = "SELECT COUNT(*) as total FROM orders WHERE DATE(time) BETWEEN ? AND ? AND company_id = ?";
+    $countParams = [$startDate, $endDate, $company_id];
+    $countTypes = 'ssi';
     
     if (!empty($searchTerm)) {
         $countQuery .= " AND (orderNo LIKE ? OR customer_name LIKE ?)";
@@ -89,7 +106,7 @@ try {
     $countResult = $countStmt->get_result();
     $totalCount = $countResult->fetch_assoc()['total'];
     
-    // Calculate summary statistics EXCLUDING cancelled orders
+    // Calculate summary statistics EXCLUDING cancelled orders - now includes company_id filter
     $summaryQuery = "
         SELECT 
             COUNT(*) as total_orders,
@@ -101,10 +118,11 @@ try {
         WHERE 
             time >= ? AND time < DATE_ADD(?, INTERVAL 1 DAY)
             AND status != 'cancelled'
+            AND company_id = ?
     ";
     
     $summaryStmt = $conn->prepare($summaryQuery);
-    $summaryStmt->bind_param('ss', $startDate, $endDate);
+    $summaryStmt->bind_param('ssi', $startDate, $endDate, $company_id);
     $summaryStmt->execute();
     $summaryResult = $summaryStmt->get_result();
     $summary = $summaryResult->fetch_assoc();

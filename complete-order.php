@@ -125,6 +125,31 @@ try {
     $stmt->execute();
     $transaction_id = $conn->insert_id;
 
+    // Check if any payment method is "debt" and record it in debt_payments
+    $debtAmount = 0;
+    foreach ($paymentMethods as $payment) {
+        if (strtolower($payment['method']) === 'debt') {
+            $debtAmount += $payment['amount'];
+        }
+    }
+
+    // If there's any debt payment, record it
+    if ($debtAmount > 0) {
+        $stmt = $conn->prepare("INSERT INTO debt_payments 
+            (company_id, created_by, transaction_id, total, due_amount, name, debtor_creditor, date_created) 
+            VALUES (?, ?, ?, ?, ?, ?, 'debtor', NOW())");
+        $stmt->bind_param("iiidds", 
+            $company_id, 
+            $created_by, 
+            $transaction_id, 
+            $debtAmount, 
+            $debtAmount, // Set due_amount equal to total initially
+            $customer_name
+        );
+        if (!$stmt->execute()) {
+            throw new Exception("Failed to record debt payment: " . $stmt->error);
+        }
+    }
 
     // Fetch current money values for the company
     $fetch_money_sql = "SELECT * FROM money WHERE company_id = ?";
@@ -144,6 +169,11 @@ try {
         $method = str_replace(" ", "_", $payment['method']); // Convert method to match column name
         $amount = $payment['amount'];
 
+        // Skip debt as it's not a money account
+        if (strtolower($payment['method']) === 'debt') {
+            continue;
+        }
+
         if (!isset($money_data[$method])) {
             throw new Exception("Invalid payment method: " . $payment['method']);
         }
@@ -158,7 +188,7 @@ try {
         $stmt->execute();
     }
 
-    // Update money table with the new balances
+    // Update money table with the new balances (excluding debt)
     $update_money_sql = "UPDATE money SET cash = ?, NMB = ?, CRDB = ?, NBC = ?, mpesa = ?, tigo_pesa = ?, airtel_money = ?, halo_pesa = ? WHERE company_id = ?";
     $stmt = $conn->prepare($update_money_sql);
     $stmt->bind_param("ddddddddi", 

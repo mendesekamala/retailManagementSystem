@@ -75,10 +75,18 @@ try {
     }
 
     if ($debtAmount > 0) {
-        $insert_debt_sql = "INSERT INTO debt_payments (company_id, created_by, transaction_id, total, name) 
-                            VALUES (?, ?, ?, ?, ?)";
+        $insert_debt_sql = "INSERT INTO debt_payments 
+            (company_id, created_by, transaction_id, total, due_amount, name, debtor_creditor) 
+            VALUES (?, ?, ?, ?, ?, ?, 'creditor')";
         $stmt = $conn->prepare($insert_debt_sql);
-        $stmt->bind_param("iiids", $company_id, $created_by, $transaction_id, $debtAmount, $supplier_name);
+        $stmt->bind_param("iiidds", 
+            $company_id, 
+            $created_by, 
+            $transaction_id, 
+            $debtAmount, 
+            $debtAmount, // Set due_amount equal to total initially
+            $supplier_name
+        );
         $stmt->execute();
     }
 
