@@ -119,6 +119,7 @@ $result = mysqli_query($conn, $query);
 </head>
 
 <?php include('sidebar.php'); ?>
+<?php include('payment-modal_debtors.php'); ?>
 
 <body>
     <div class="dashboard-container">

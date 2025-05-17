@@ -14,17 +14,37 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $itemsPerPage;
 
 $query = "SELECT 
-            name, 
-            SUM(total) AS total_debt,
-            SUM(due_amount) AS current_due_amount,
-            MAX(date_created) AS last_debt_date,
+            dp.debt_id,
+            dp.name, 
+            SUM(dp.total) AS total_debt,
+            SUM(dp.due_amount) AS current_due_amount,
+            MAX(dp.date_created) AS last_debt_date,
             COUNT(*) AS debt_count
-          FROM debt_payments 
-          WHERE company_id = $companyId AND debtor_creditor = 'debtor'
-          GROUP BY name 
+          FROM debt_payments dp
+          WHERE dp.company_id = ? AND dp.debtor_creditor = 'debtor'
+          GROUP BY dp.name, dp.debt_id
           ORDER BY current_due_amount DESC
-          LIMIT $itemsPerPage OFFSET $offset";
-$result = mysqli_query($conn, $query);
+          LIMIT ? OFFSET ?";
+
+// Prepare the statement
+$stmt = mysqli_prepare($conn, $query);
+if (!$stmt) {
+    die("Prepare failed: " . mysqli_error($conn));
+}
+
+// Bind parameters
+mysqli_stmt_bind_param($stmt, "iii", $companyId, $itemsPerPage, $offset);
+
+// Execute query
+if (!mysqli_stmt_execute($stmt)) {
+    die("Execute failed: " . mysqli_stmt_error($stmt));
+}
+
+// Get result
+$result = mysqli_stmt_get_result($stmt);
+if (!$result) {
+    die("Get result failed: " . mysqli_error($conn));
+}
 ?>
 
 <table id="debtors-table">
@@ -39,29 +59,42 @@ $result = mysqli_query($conn, $query);
         </tr>
     </thead>
     <tbody>
-        <?php while($row = mysqli_fetch_assoc($result)): ?>
-            <tr>
-                <td><?= htmlspecialchars($row['name']) ?></td>
-                <td>Tsh <?= number_format($row['total_debt'], 2) ?></td>
-                <td>Tsh <?= number_format($row['current_due_amount'], 2) ?></td>
-                <td><?= date('M d, Y', strtotime($row['last_debt_date'])) ?></td>
-                <td>
-                    <span class="status-badge status-<?= $row['current_due_amount'] > 0 ? 'due' : 'paid' ?>">
-                        <?= $row['current_due_amount'] > 0 ? 'Due' : 'Paid' ?>
-                    </span>
-                </td>
-                <td>
-                    <button class="action-btn mark-paid" data-name="<?= htmlspecialchars($row['name']) ?>">
-                        <i class='bx bx-check'></i>
-                    </button>
-                    <button class="action-btn view" data-name="<?= htmlspecialchars($row['name']) ?>">
-                        <i class='bx bx-show'></i>
-                    </button>
-                    <button class="action-btn edit" data-name="<?= htmlspecialchars($row['name']) ?>">
-                        <i class='bx bx-edit'></i>
-                    </button>
-                </td>
-            </tr>
-        <?php endwhile; ?>
+        <?php 
+        if (mysqli_num_rows($result) > 0) {
+            while($row = mysqli_fetch_assoc($result)): ?>
+                <tr data-debt-id="<?= htmlspecialchars($row['debt_id']) ?>">
+                    <td><?= htmlspecialchars($row['name']) ?></td>
+                    <td>Tsh <?= number_format($row['total_debt'], 2) ?></td>
+                    <td>Tsh <?= number_format($row['current_due_amount'], 2) ?></td>
+                    <td><?= date('M d, Y', strtotime($row['last_debt_date'])) ?></td>
+                    <td>
+                        <span class="status-badge status-<?= $row['current_due_amount'] > 0 ? 'due' : 'paid' ?>">
+                            <?= $row['current_due_amount'] > 0 ? 'Due' : 'Paid' ?>
+                        </span>
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="action-btn mark-paid" data-name="<?= htmlspecialchars($row['name']) ?>">
+                                <i class='bx bx-check'></i>
+                            </button>
+                            <button class="action-btn view" data-name="<?= htmlspecialchars($row['name']) ?>">
+                                <i class='bx bx-show'></i>
+                            </button>
+                            <button class="action-btn edit" data-name="<?= htmlspecialchars($row['name']) ?>">
+                                <i class='bx bx-edit'></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            <?php endwhile; 
+        } else {
+            echo '<tr><td colspan="6">No debts found</td></tr>';
+        }
+        ?>
     </tbody>
 </table>
+
+<?php
+// Close statement
+mysqli_stmt_close($stmt);
+?>
