@@ -94,12 +94,28 @@ try {
             $quantity, $buying_price, $selling_price, $sum, $sold_in, $unit_id);
         $stmt->execute();
 
-        // Inventory update logic remains the same
+        // Inventory update logic with unit synchronization
         if ($unit_type === 'whole') {
+            // Update base product quantity
             $stmt = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE product_id = ?");
             $stmt->bind_param("ii", $quantity, $product_id);
             $stmt->execute();
+            
+            // After updating base quantity, synchronize all units for this product
+            $stmt = $conn->prepare("SELECT quantity FROM products WHERE product_id = ?");
+            $stmt->bind_param("i", $product_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $product_data = $result->fetch_assoc();
+            $new_base_quantity = $product_data['quantity'];
+            
+            // Update available_units for all units of this product
+            $stmt = $conn->prepare("UPDATE units SET available_units = ? * per_single_quantity 
+                                WHERE product_id = ?");
+            $stmt->bind_param("di", $new_base_quantity, $product_id);
+            $stmt->execute();
         } else {
+            // For unit sales, first get the unit's per_single_quantity
             $stmt = $conn->prepare("SELECT per_single_quantity FROM units WHERE unit_id = ?");
             $stmt->bind_param("i", $unit_id);
             $stmt->execute();
@@ -111,8 +127,23 @@ try {
             }
 
             $quantity_reduction = $quantity / $unit_data['per_single_quantity'];
+            // Update base product quantity
             $stmt = $conn->prepare("UPDATE products SET quantity = quantity - ? WHERE product_id = ?");
             $stmt->bind_param("di", $quantity_reduction, $product_id);
+            $stmt->execute();
+            
+            // After updating base quantity, synchronize all units for this product
+            $stmt = $conn->prepare("SELECT quantity FROM products WHERE product_id = ?");
+            $stmt->bind_param("i", $product_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $product_data = $result->fetch_assoc();
+            $new_base_quantity = $product_data['quantity'];
+            
+            // Update available_units for all units of this product
+            $stmt = $conn->prepare("UPDATE units SET available_units = ? * per_single_quantity 
+                                WHERE product_id = ?");
+            $stmt->bind_param("di", $new_base_quantity, $product_id);
             $stmt->execute();
         }
     }
