@@ -432,12 +432,12 @@ body {
     .date-filter .btn {
         flex-shrink: 0;
     }
-    .summary-cards {
+    /* .summary-cards {
         gap: 10px;
-    }
-    .card {
-        min-width: calc(100vw - 100px); /* Reduced from calc(100vw - 60px) */
-    }
+    } */
+    /* .card {
+        min-width: calc(100vw - 100px); 
+    } */
 }
 
 @media (max-width: 480px) {

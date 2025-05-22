@@ -1,21 +1,15 @@
 :root {
     --primary: #4361ee;
     --secondary: #3f37c9;
-    --success: #4cc9f0;
-    --danger: #f72585;
-    --warning: #f8961e;
-    --info: #4895ef;
+    --success: #2ecc71;
+    --danger: #e74c3c;
+    --warning: #f39c12;
+    --info: #3498db;
     --light: #f8f9fa;
     --dark: #212529;
     --white: #ffffff;
     --gray: #6c757d;
     --gray-light: #e9ecef;
-    --blue: #4361ee;
-    --green: #2ecc71;
-    --orange: #e67e22;
-    --red: #e74c3c;
-    --purple: #9b59b6;
-    --dark-blue: #34495e;
 }
 
 body {
@@ -49,7 +43,7 @@ body {
     gap: 10px;
 }
 
-.filter-dropdown {
+.btn {
     padding: 8px 15px;
     border: none;
     border-radius: 5px;
@@ -57,11 +51,19 @@ body {
     color: var(--primary);
     cursor: pointer;
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     transition: all 0.3s ease;
 }
 
-.filter-dropdown:hover {
+.btn.active {
+    background-color: var(--primary);
+    color: white;
+}
+
+.btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
@@ -72,18 +74,32 @@ body {
     overflow-x: auto;
     margin-bottom: 30px;
     -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
+    scrollbar-width: 3px;
 }
 
 .summary-scroller::-webkit-scrollbar {
-    display: none;
+    height: 8px;
+    background-color: #f5f5f5;
+}
+
+.summary-scroller::-webkit-scrollbar-thumb {
+    background-color: #c1c1c1;
+    border-radius: 4px;
+}
+
+.summary-scroller::-webkit-scrollbar-thumb:hover {
+    background-color: #a8a8a8;
 }
 
 .summary-cards {
-    display: inline-flex;
+    display: flex;
     gap: 20px;
     padding-bottom: 15px;
-    min-width: min-content;
+    width: max-content;
+}
+
+.summary-scroller {
+    mask-image: linear-gradient(to right, transparent, black 10px, black 90%, transparent);
 }
 
 .card {
@@ -115,12 +131,15 @@ body {
     font-size: 24px;
 }
 
-.bg-blue { background-color: var(--blue); }
-.bg-green { background-color: var(--green); }
-.bg-orange { background-color: var(--orange); }
-.bg-red { background-color: var(--red); }
-.bg-purple { background-color: var(--purple); }
-.bg-dark { background-color: var(--dark-blue); }
+.bg-blue { background-color: var(--primary); }
+.bg-green { background-color: var(--success); }
+.bg-red { background-color: var(--danger); }
+.bg-purple { background-color: #9b59b6; }
+.bg-orange { background-color: #e67e22; }
+.bg-teal { background-color: #1abc9c; }
+.bg-yellow { background-color: #f1c40f; }
+.bg-pink { background-color: #e91e63; }
+.bg-gray { background-color: #95a5a6; }
 
 .card-info h3 {
     margin: 0 0 5px 0;
@@ -147,8 +166,6 @@ body {
     border-radius: 10px;
     padding: 20px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    position: relative;
-    height: 400px;
 }
 
 .chart-container h2 {
@@ -172,8 +189,14 @@ body {
 
 .table-controls {
     display: flex;
-    justify-content: flex-end;
+    justify-content: space-between;
     margin-bottom: 15px;
+}
+
+.table-controls input, .table-controls select {
+    padding: 8px 12px;
+    border: 1px solid var(--gray-light);
+    border-radius: 5px;
 }
 
 .table-responsive {
@@ -201,100 +224,188 @@ body {
     background-color: #f8f9fa;
 }
 
-.type-sale { color: var(--blue); }
-.type-profit { color: var(--green); }
-.type-purchase { color: var(--orange); }
-.type-expenses { color: var(--red); }
-.type-drawings { color: var(--purple); }
-.type-add_capitals { color: var(--dark-blue); }
+.type-badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+    text-transform: capitalize;
+}
+
+.type-sale { background-color: #d4edda; color: #155724; }
+.type-purchase { background-color: #cce5ff; color: #004085; }
+.type-expenses { background-color: #f8d7da; color: #721c24; }
+.type-drawings { background-color: #fff3cd; color: #856404; }
+.type-capital { background-color: #e2e3e5; color: #383d41; }
+.type-destruction { background-color: #d1ecf1; color: #0c5460; }
+
+.text-success { color: var(--success); }
+.text-danger { color: var(--danger); }
+
+.action-btn {
+    background: none;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 16px;
+    margin: 0 5px;
+    padding: 5px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+    background-color: rgba(67, 97, 238, 0.1);
+    transform: scale(1.1);
+}
+
+.action-btn.delete {
+    color: var(--danger);
+}
+
+.action-btn.delete:hover {
+    background-color: rgba(231, 76, 60, 0.1);
+}
+
+.action-btn.edit {
+    color: var(--warning);
+}
+
+.action-btn.edit:hover {
+    background-color: rgba(243, 156, 18, 0.1);
+}
 
 .pagination {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 15px;
     margin-top: 20px;
+    gap: 15px;
 }
 
 .pagination button {
-    background: var(--primary);
+    background-color: var(--primary);
     color: white;
     border: none;
-    width: 35px;
-    height: 35px;
-    border-radius: 50%;
+    border-radius: 5px;
+    padding: 8px 15px;
     cursor: pointer;
     display: flex;
     align-items: center;
-    justify-content: center;
+    gap: 5px;
+    transition: all 0.3s ease;
 }
 
 .pagination button:disabled {
-    opacity: 0.5;
+    background-color: var(--gray-light);
+    color: var(--gray);
     cursor: not-allowed;
-}
-
-/* Loading state */
-.table-section.loading {
-    position: relative;
     opacity: 0.7;
 }
 
-.table-section.loading::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 40px;
-    height: 40px;
-    border: 3px solid rgba(0,0,0,0.1);
-    border-radius: 50%;
-    border-top-color: #4361ee;
-    animation: spin 1s ease-in-out infinite;
-    transform: translate(-50%, -50%);
+.pagination button:hover:not(:disabled) {
+    background-color: var(--secondary);
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
 
-@keyframes spin {
-    to { transform: translate(-50%, -50%) rotate(360deg); }
+#page-info {
+    font-size: 14px;
+    color: var(--gray);
 }
 
+/* Responsive styles */
 @media (max-width: 1200px) {
     .charts-section {
         grid-template-columns: 1fr;
     }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
     body {
         margin-left: 0;
         padding-top: 60px;
     }
-
-    .dashboard-container {
-        padding: 15px;
-    }
-
-    .card {
-        min-width: calc(100vw - 60px);
-    }
-
-    .table-controls {
-        justify-content: flex-start;
-    }
     
-    .chart-container {
-        height: 300px;
-    }
-}
-
-@media (max-width: 480px) {
-    .dashboard-header h1 {
-        font-size: 1.5rem;
-    }
-
     .dashboard-header {
         flex-direction: column;
         align-items: flex-start;
         gap: 15px;
     }
+    
+    .date-filter {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .card {
+        min-width: 200px;
+    }
+    
+    .table-controls {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .table-controls input, 
+    .table-controls select {
+        width: 100%;
+    }
+}
+
+@media (max-width: 576px) {
+    .dashboard-container {
+        padding: 15px;
+    }
+    
+    /* .card {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px;
+    } */
+
+    .summary-cards {
+        display: inline-flex; /* Force horizontal layout */
+    }
+    
+    .card-info h3 {
+        font-size: 12px;
+    }
+    
+    .card-info span {
+        font-size: 18px;
+    }
+    
+    #transactions-table th,
+    #transactions-table td {
+        padding: 8px 10px;
+        font-size: 14px;
+    }
+}
+
+/* Animation for table rows */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+#transactions-table tbody tr {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* Loading skeleton for cards */
+.card-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 10px;
+    min-height: 100px;
+}
+
+@keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
 }

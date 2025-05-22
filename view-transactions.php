@@ -1,55 +1,61 @@
 <?php
-require_once 'db_connection.php';
-require_once 'includes/functions.php';
-
+// Set timezone at the very beginning
+date_default_timezone_set('Africa/Dar_es_Salaam');
 session_start();
-$company_id = $_SESSION['company_id'] ?? 1;
-
-// Default period to week (7 days)
-$period = $_GET['period'] ?? 'week';
-$type_filter = $_GET['type_filter'] ?? null;
-$page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$itemsPerPage = 10;
-
-// Get data
-$summary = getTransactionSummary($conn, $company_id, $period);
-$profit_data = getProfitData($conn, $company_id, $period);
-
-// Get paginated transactions
-$transactions = getRecentTransactions($conn, $company_id, $type_filter, $page, $itemsPerPage);
-$totalTransactions = getTotalTransactionsCount($conn, $company_id, $type_filter);
-$totalPages = ceil($totalTransactions / $itemsPerPage);
-
-// Prepare chart data
-$chart_data = [
-    'dates' => array_column($profit_data, 'date'),
-    'sales' => array_column($profit_data, 'sales'),
-    'purchases' => array_column($profit_data, 'cost'),
-    'profits' => array_column($profit_data, 'profit')
-];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Transactions Dashboard</title>
     <link href="https://unpkg.com/boxicons@2.0.7/css/boxicons.min.css" rel="stylesheet">
-    <link href="css/sidebar.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <link href="css/view-transactions.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <style>
+        .flatpickr-calendar {
+            z-index: 1001 !important;
+        }
+        .date-range-picker {
+            display: none;
+            position: absolute;
+            background: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            z-index: 1000;
+        }
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         html, body {
             overflow-x: hidden;
             max-width: 100%;
         }
     </style>
-    <script>
-        var chartData = <?php echo json_encode($chart_data); ?>;
-        var summaryData = <?php echo json_encode($summary); ?>;
-    </script>
 </head>
 
 <?php include('sidebar.php'); ?>
@@ -59,112 +65,155 @@ $chart_data = [
         <header class="dashboard-header">
             <h1>Transactions Dashboard</h1>
             <div class="date-filter">
-                <select id="period-filter" class="filter-dropdown">
-                    <option value="day" <?= $period == 'day' ? 'selected' : '' ?>>Today</option>
-                    <option value="3days" <?= $period == '3days' ? 'selected' : '' ?>>Last 3 Days</option>
-                    <option value="week" <?= $period == 'week' ? 'selected' : '' ?>>Last Week</option>
-                    <option value="month" <?= $period == 'month' ? 'selected' : '' ?>>Last Month</option>
-                </select>
+                <button class="btn active" data-days="7">Last 7 Days</button>
+                <button class="btn" data-days="30">Last 30 Days</button>
+                <button class="btn" data-days="90">Last 90 Days</button>
+                <button class="btn" id="custom-range">
+                    <i class='bx bx-calendar'></i> Custom Range
+                </button>
             </div>
         </header>
 
         <div class="summary-scroller">
             <div class="summary-cards">
-                <?php 
-                $tile_types = ['sale', 'profit', 'purchase', 'expenses', 'drawings', 'add_capitals'];
-                $colors = [
-                    'sale' => 'blue',
-                    'profit' => 'green',
-                    'purchase' => 'orange',
-                    'expenses' => 'red',
-                    'drawings' => 'purple',
-                    'add_capitals' => 'dark'
-                ];
-                $icons = [
-                    'sale' => 'bx-credit-card',
-                    'profit' => 'bx-trending-up',
-                    'purchase' => 'bx-cart',
-                    'expenses' => 'bx-money',
-                    'drawings' => 'bx-wallet',
-                    'add_capitals' => 'bx-dollar'
-                ];
-                
-                foreach ($tile_types as $tile_type): 
-                    $data = array_filter($summary, function($item) use ($tile_type) {
-                        return $item['transaction_type'] == $tile_type;
-                    });
-                    $data = $data ? array_values($data)[0] : ['count' => 0, 'total' => 0];
-                ?>
                 <div class="card">
-                    <div class="card-icon bg-<?= $colors[$tile_type] ?>">
-                        <i class='bx <?= $icons[$tile_type] ?>'></i>
+                    <div class="card-icon bg-green">
+                        <i class='bx bx-cart-alt'></i>
                     </div>
                     <div class="card-info">
-                        <h3><?= ucfirst(str_replace('_', ' ', $tile_type)) ?></h3>
-                        <span><?= number_format($data['total'], 2) ?></span>
+                        <h3>Sales</h3>
+                        <span id="sales-count">0</span>
                     </div>
                 </div>
-                <?php endforeach; ?>
+                <div class="card">
+                    <div class="card-icon bg-blue">
+                        <i class='bx bx-package'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Purchases</h3>
+                        <span id="purchases-count">0</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon bg-orange">
+                        <i class='bx bx-money-withdraw'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Drawings</h3>
+                        <span id="drawings-count">0</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon bg-red">
+                        <i class='bx bx-wallet'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Expenses</h3>
+                        <span id="expenses-count">0</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon bg-purple">
+                        <i class='bx bx-coin-stack'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Add Capital</h3>
+                        <span id="capital-count">0</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon bg-teal">
+                        <i class='bx bx-user-pin'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Debtors</h3>
+                        <span id="debtors-count">0</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon bg-yellow">
+                        <i class='bx bx-user-voice'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Creditors</h3>
+                        <span id="creditors-count">0</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon bg-gray">
+                        <i class='bx bx-trash'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Destructions</h3>
+                        <span id="destructions-count">0</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <div class="card-icon bg-pink">
+                        <i class='bx bx-refresh'></i>
+                    </div>
+                    <div class="card-info">
+                        <h3>Refund</h3>
+                        <span id="refund-count">0</span>
+                    </div>
+                </div>
             </div>
         </div>
 
         <div class="charts-section">
             <div class="chart-container">
-                <h2>Profit Trend</h2>
-                <canvas id="lineChart" height="300"></canvas>
+                <h2>Sales vs Purchases</h2>
+                <canvas id="sales-purchases-chart"></canvas>
             </div>
             <div class="chart-container">
-                <h2>Transaction Distribution</h2>
-                <canvas id="pieChart" height="300"></canvas>
+                <h2>Transaction Types</h2>
+                <canvas id="transaction-types-chart"></canvas>
             </div>
         </div>
 
         <div class="table-section">
             <h2>Recent Transactions</h2>
             <div class="table-controls">
-                <select id="type-filter" class="filter-dropdown">
+                <input type="text" id="transaction-search" placeholder="Search transactions...">
+                <select id="type-filter">
                     <option value="">All Types</option>
-                    <option value="sale" <?= $type_filter == 'sale' ? 'selected' : '' ?>>Sales</option>
-                    <option value="purchase" <?= $type_filter == 'purchase' ? 'selected' : '' ?>>Purchases</option>
-                    <option value="expenses" <?= $type_filter == 'expenses' ? 'selected' : '' ?>>Expenses</option>
-                    <option value="add_capitals" <?= $type_filter == 'add_capitals' ? 'selected' : '' ?>>Add Capitals</option>
-                    <option value="drawings" <?= $type_filter == 'drawings' ? 'selected' : '' ?>>Drawings</option>
+                    <option value="sale">Sales</option>
+                    <option value="purchase">Purchases</option>
+                    <option value="expenses">Expenses</option>
+                    <option value="drawings">Drawings</option>
+                    <option value="add_capital">Capital</option>
+                    <option value="destruction">Destruction</option>
                 </select>
             </div>
             <div class="table-responsive">
                 <table id="transactions-table">
                     <thead>
                         <tr>
+                            <th>Transaction ID</th>
                             <th>Type</th>
+                            <th>Date</th>
                             <th>Amount</th>
                             <th>Description</th>
-                            <th>Date & Time</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($transactions as $transaction): ?>
-                        <tr>
-                            <td class="type-<?= $transaction['transaction_type'] ?>"><?= ucfirst(str_replace('_', ' ', $transaction['transaction_type'])) ?></td>
-                            <td><?= number_format($transaction['amount'], 2) ?></td>
-                            <td><?= htmlspecialchars($transaction['description']) ?></td>
-                            <td><?= date('M j, Y H:i', strtotime($transaction['date_made'])) ?></td>
-                        </tr>
-                        <?php endforeach; ?>
+                        <!-- Data loaded dynamically -->
                     </tbody>
                 </table>
             </div>
             <div class="pagination">
-                <button id="prev-page" <?= $page <= 1 ? 'disabled' : '' ?>>
-                    <i class='bx bx-chevron-left'></i>
-                </button>
-                <span id="page-info">Page <?= $page ?> of <?= $totalPages ?></span>
-                <button id="next-page" <?= $page >= $totalPages ? 'disabled' : '' ?>>
-                    <i class='bx bx-chevron-right'></i>
-                </button>
+                <button id="prev-page" disabled><i class='bx bx-chevron-left'></i></button>
+                <span id="page-info">Page 1 of 1</span>
+                <button id="next-page" disabled><i class='bx bx-chevron-right'></i></button>
             </div>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/luxon@2.0.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.0.0"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="scripts/view-transactions.js"></script>
 </body>
 </html>

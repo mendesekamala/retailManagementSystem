@@ -158,8 +158,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Only set dates if it's a predefined range (not custom)
         if (days && days !== 'custom') {
             const endDate = new Date();
+            endDate.setHours(23, 59, 59, 999); // Include full current day
+            
             const startDate = new Date();
-            startDate.setDate(endDate.getDate() - parseInt(days));
+            startDate.setDate(endDate.getDate() - parseInt(days) + 1); // Add 1 to include start day
+            startDate.setHours(0, 0, 0, 0);
 
             currentStartDate = startDate.toISOString().split('T')[0];
             currentEndDate = endDate.toISOString().split('T')[0];
@@ -169,8 +172,11 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!currentStartDate || !currentEndDate) {
             // Default to last 7 days if no dates are set
             const endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+            
             const startDate = new Date();
-            startDate.setDate(endDate.getDate() - 7);
+            startDate.setDate(endDate.getDate() - 6); // 7 days total (6 days + current day)
+            startDate.setHours(0, 0, 0, 0);
 
             currentStartDate = startDate.toISOString().split('T')[0];
             currentEndDate = endDate.toISOString().split('T')[0];

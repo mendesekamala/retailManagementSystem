@@ -51,9 +51,9 @@ try {
     // 3. Record the transaction
     $insertTransactionQuery = "INSERT INTO transactions 
         (transaction_type, transType_id, amount, company_id, created_by, date_made, description) 
-        VALUES ('credit_payment', 0, ?, ?, ?, NOW(), ?)";
+        VALUES ('creditors', 0, ?, ?, ?, NOW(), ?)";
     $stmt = $conn->prepare($insertTransactionQuery);
-    $description = "Payment to $creditorName for credit $debt_id";
+    $description = "$creditorName credit no $debt_id";
     $stmt->bind_param("diis", $paymentAmount, $company_id, $created_by, $description);
     $stmt->execute();
     $transaction_id = $conn->insert_id;

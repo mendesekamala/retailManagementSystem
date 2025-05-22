@@ -4,6 +4,9 @@ header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET");
 require_once '../db_connection.php';
 
+// Set timezone to Tanzania
+date_default_timezone_set('Africa/Dar_es_Salaam');
+
 // Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -32,7 +35,7 @@ try {
     // Calculate offset for pagination
     $offset = ($page - 1) * $itemsPerPage;
     
-    // Base query for orders - now includes company_id filter
+    // Base query for orders - now includes company_id filter and proper date comparison
     $query = "
         SELECT 
             order_id, 
@@ -47,7 +50,7 @@ try {
         FROM 
             orders 
         WHERE 
-            DATE(time) BETWEEN ? AND ?
+            time >= ? AND time < DATE_ADD(?, INTERVAL 1 DAY)
             AND company_id = ?
     ";
     
@@ -82,8 +85,8 @@ try {
     $result = $stmt->get_result();
     $orders = $result->fetch_all(MYSQLI_ASSOC);
     
-    // Get total count for pagination - now includes company_id filter
-    $countQuery = "SELECT COUNT(*) as total FROM orders WHERE DATE(time) BETWEEN ? AND ? AND company_id = ?";
+    // Get total count for pagination
+    $countQuery = "SELECT COUNT(*) as total FROM orders WHERE time >= ? AND time < DATE_ADD(?, INTERVAL 1 DAY) AND company_id = ?";
     $countParams = [$startDate, $endDate, $company_id];
     $countTypes = 'ssi';
     
@@ -106,7 +109,7 @@ try {
     $countResult = $countStmt->get_result();
     $totalCount = $countResult->fetch_assoc()['total'];
     
-    // Calculate summary statistics EXCLUDING cancelled orders - now includes company_id filter
+    // Calculate summary statistics EXCLUDING cancelled orders
     $summaryQuery = "
         SELECT 
             COUNT(*) as total_orders,

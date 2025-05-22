@@ -147,8 +147,7 @@ $owner = $stmt->get_result()->fetch_assoc();
                 </div>
 
                 <div class="customer-message">
-                    <p>Welcome back <?= htmlspecialchars($order['customer_name']) ?>!</p>
-                    <p>Thank you for your business</p>
+                    <p>You are warmly welcome again <?= htmlspecialchars($order['customer_name']) ?>!</p>
                 </div>
             </div>
         </div>
